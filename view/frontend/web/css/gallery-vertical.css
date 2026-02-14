@@ -1281,7 +1281,7 @@
 
 .rp-shimmer .rp-gallery-item {
     position: relative;
-    background: #f0f0f0;
+    background: #e0e0e0;
     overflow: hidden;
     min-height: 200px;
 }
@@ -1296,7 +1296,7 @@
     background: linear-gradient(
         90deg,
         transparent 0%,
-        rgba(255, 255, 255, 0.4) 50%,
+        rgba(255, 255, 255, 0.8) 50%,
         transparent 100%
     );
     animation: rp-shimmer-slide 1.5s infinite;

@@ -17,9 +17,9 @@ define([
         var effects = config.effects || {};
         var layoutType = config.layout ? config.layout.type : 'vertical';
 
-        // Safety: shimmer and fade-in conflict. If both enabled, disable shimmer.
+        // Safety: shimmer and fade-in are mutually exclusive; shimmer takes priority.
         if (effects.shimmerEnabled && effects.fadeInEnabled) {
-            effects.shimmerEnabled = false;
+            effects.fadeInEnabled = false;
         }
 
         // =========================================
