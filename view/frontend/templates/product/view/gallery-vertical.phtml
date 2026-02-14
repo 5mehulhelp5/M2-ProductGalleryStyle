@@ -81,6 +81,12 @@ if ($galleryConfig->isCounterEnabled()) {
     $wrapperClasses[] = 'rp-counter';
 }
 
+// Focus effect only for stack layouts (not slider)
+$focusStyle = $galleryConfig->getFocusStyle();
+if ($focusStyle !== 'disabled' && $layoutType !== 'slider') {
+    $wrapperClasses[] = 'rp-focus-' . $focusStyle;
+}
+
 // Get JS config
 $jsConfig = $galleryConfig->getJsConfigJson();
 

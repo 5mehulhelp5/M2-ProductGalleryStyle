@@ -1,7 +1,7 @@
 /**
  * Rollpix ProductGallery - Effects Component
  *
- * Handles: shimmer loading, fade-in on scroll, image counter
+ * Handles: shimmer loading, fade-in on scroll, scroll focus, image counter
  *
  * @category  Rollpix
  * @package   Rollpix_ProductGallery
@@ -86,6 +86,59 @@ define([
             $items.each(function () {
                 observer.observe(this);
             });
+        }
+
+        // =========================================
+        // SCROLL FOCUS (stack layouts only)
+        // =========================================
+        var focusStyle = effects.focusStyle || 'disabled';
+        if (focusStyle !== 'disabled' && layoutType !== 'slider') {
+            initFocus();
+        }
+
+        function initFocus() {
+            var $items = $gallery.find('.rp-gallery-item');
+            if ($items.length <= 1) {
+                return;
+            }
+
+            var useFade = focusStyle === 'fade' || focusStyle === 'both';
+            var useBlur = focusStyle === 'blur' || focusStyle === 'both';
+            var ticking = false;
+
+            function updateFocus() {
+                var vpCenter = window.innerHeight / 2;
+
+                $items.each(function () {
+                    var rect = this.getBoundingClientRect();
+                    var itemCenter = rect.top + rect.height / 2;
+                    var distance = Math.abs(itemCenter - vpCenter);
+                    var maxDist = window.innerHeight * 0.6;
+                    // factor: 1 = centered in viewport, 0 = far away
+                    var factor = Math.max(0, Math.min(1, 1 - distance / maxDist));
+
+                    if (useFade) {
+                        this.style.opacity = (0.25 + factor * 0.75).toFixed(3);
+                    }
+                    if (useBlur) {
+                        var blur = ((1 - factor) * 3).toFixed(1);
+                        this.style.filter = blur > 0.1 ? 'blur(' + blur + 'px)' : 'none';
+                    }
+                });
+            }
+
+            window.addEventListener('scroll', function () {
+                if (!ticking) {
+                    requestAnimationFrame(function () {
+                        updateFocus();
+                        ticking = false;
+                    });
+                    ticking = true;
+                }
+            }, { passive: true });
+
+            // Initial call
+            updateFocus();
         }
 
         // =========================================

@@ -48,6 +48,7 @@
                 <shimmer_enabled>0</shimmer_enabled>
                 <fadein_enabled>0</fadein_enabled>
                 <counter_enabled>0</counter_enabled>
+                <focus_style>disabled</focus_style>
             </effects>
             <!-- Tabs Settings -->
             <tabs>

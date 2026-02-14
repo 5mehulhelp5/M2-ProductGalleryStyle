@@ -324,6 +324,18 @@
                     <comment>Show position indicator while navigating images. Only effective with Slider layout.</comment>
                     <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
                 </field>
+
+                <field id="focus_style"
+                       translate="label comment"
+                       type="select"
+                       sortOrder="40"
+                       showInDefault="1"
+                       showInWebsite="1"
+                       showInStore="1">
+                    <label>Scroll Focus Effect</label>
+                    <comment>Highlight the image closest to the viewport center while fading or blurring images that scroll away. Only for stack layouts (Vertical, Grid, Fashion).</comment>
+                    <source_model>Rollpix\ProductGallery\Model\Config\Source\FocusStyle</source_model>
+                </field>
             </group>
 
             <!-- Mobile Group -->

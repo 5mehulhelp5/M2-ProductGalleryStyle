@@ -1337,6 +1337,15 @@
 }
 
 /* ==============================================
+   Scroll Focus Effect
+   ============================================== */
+
+[class*="rp-focus-"] .rp-gallery-item {
+    transition: opacity 0.35s ease, filter 0.35s ease;
+    will-change: opacity, filter;
+}
+
+/* ==============================================
    Image Counter
    ============================================== */
 
@@ -1427,6 +1436,13 @@
         transition: none;
     }
 
+    /* Focus: disable scroll effect */
+    [class*="rp-focus-"] .rp-gallery-item {
+        opacity: 1 !important;
+        filter: none !important;
+        transition: none;
+    }
+
     /* Counter: disable transition */
     .rp-counter-display {
         transition: none;
@@ -1502,5 +1518,10 @@
     .rp-fadein .rp-gallery-item {
         opacity: 1;
         transform: none;
+    }
+
+    [class*="rp-focus-"] .rp-gallery-item {
+        opacity: 1 !important;
+        filter: none !important;
     }
 }

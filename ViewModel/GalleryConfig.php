@@ -122,6 +122,11 @@ class GalleryConfig implements ArgumentInterface
         return $this->config->isCounterEnabled();
     }
 
+    public function getFocusStyle(): string
+    {
+        return $this->config->getFocusStyle();
+    }
+
     /**
      * Get JS configuration as JSON
      */

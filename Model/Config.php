@@ -40,6 +40,7 @@ class Config
     private const XML_PATH_SHIMMER_ENABLED = 'rollpix_gallery/effects/shimmer_enabled';
     private const XML_PATH_FADEIN_ENABLED = 'rollpix_gallery/effects/fadein_enabled';
     private const XML_PATH_COUNTER_ENABLED = 'rollpix_gallery/effects/counter_enabled';
+    private const XML_PATH_FOCUS_STYLE = 'rollpix_gallery/effects/focus_style';
 
     private ScopeConfigInterface $scopeConfig;
 
@@ -273,6 +274,15 @@ class Config
         );
     }
 
+    public function getFocusStyle(?int $storeId = null): string
+    {
+        return (string) $this->scopeConfig->getValue(
+            self::XML_PATH_FOCUS_STYLE,
+            ScopeInterface::SCOPE_STORE,
+            $storeId
+        ) ?: 'disabled';
+    }
+
     /**
      * Get all configuration as array for JS
      */
@@ -316,7 +326,8 @@ class Config
             'effects' => [
                 'shimmerEnabled' => $this->isShimmerEnabled($storeId),
                 'fadeInEnabled' => $this->isFadeInEnabled($storeId),
-                'counterEnabled' => $this->isCounterEnabled($storeId)
+                'counterEnabled' => $this->isCounterEnabled($storeId),
+                'focusStyle' => $this->getFocusStyle($storeId)
             ]
         ];
     }
