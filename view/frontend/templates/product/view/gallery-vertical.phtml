@@ -61,19 +61,19 @@ if ($galleryConfig->isInlineTabsEnabled()) {
     $wrapperClasses[] = 'rp-inline-tabs';
 }
 
+// Thumbnails only apply to slider layout
 $thumbnailPosition = $galleryConfig->getThumbnailPosition();
-if ($thumbnailPosition !== 'disabled') {
+if ($layoutType === 'slider' && $thumbnailPosition !== 'disabled') {
     $wrapperClasses[] = 'rp-thumbnails-' . $thumbnailPosition;
     if ($galleryConfig->getThumbnailStyle() === 'overlay') {
         $wrapperClasses[] = 'rp-thumbnails-overlay';
     }
 }
 
+// Shimmer and fade-in are mutually exclusive; shimmer takes priority
 if ($galleryConfig->isShimmerEnabled()) {
     $wrapperClasses[] = 'rp-shimmer';
-}
-
-if ($galleryConfig->isFadeInEnabled()) {
+} elseif ($galleryConfig->isFadeInEnabled()) {
     $wrapperClasses[] = 'rp-fadein';
 }
 
@@ -164,7 +164,7 @@ $gridImageColumns = $columnCss['gridImageColumns'] ?? 2;
     </div><!-- /.rp-slider-wrapper -->
     <?php endif; ?>
 
-    <?php if ($thumbnailPosition !== 'disabled'): ?>
+    <?php if ($layoutType === 'slider' && $thumbnailPosition !== 'disabled'): ?>
     <div class="rp-thumbnail-strip" data-role="rp-thumbnails">
         <?php foreach ($images as $index => $image): ?>
             <?php
