@@ -1296,7 +1296,7 @@
     background: linear-gradient(
         90deg,
         transparent 0%,
-        rgba(255, 255, 255, 0.8) 50%,
+        rgba(255, 255, 255, 0.6) 50%,
         transparent 100%
     );
     animation: rp-shimmer-slide 1.5s infinite;
@@ -1315,10 +1315,16 @@
 .rp-shimmer .rp-gallery-item img {
     opacity: 0;
     transition: opacity 0.3s ease;
+    animation: rp-shimmer-fallback 0s 5s forwards;
 }
 
 .rp-shimmer .rp-gallery-item.rp-loaded img {
     opacity: 1;
+    animation: none;
+}
+
+@keyframes rp-shimmer-fallback {
+    to { opacity: 1; }
 }
 
 /* ==============================================

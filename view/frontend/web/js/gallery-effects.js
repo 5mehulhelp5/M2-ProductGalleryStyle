@@ -32,28 +32,40 @@ define([
         function initShimmer() {
             var $items = $gallery.find('.rp-gallery-item');
 
+            function markLoaded($item) {
+                if (!$item.hasClass('rp-loaded')) {
+                    $item.addClass('rp-loaded');
+                }
+            }
+
             $items.each(function () {
                 var $item = $(this);
                 var $img = $item.find('img');
 
                 if (!$img.length) {
-                    $item.addClass('rp-loaded');
+                    markLoaded($item);
                     return;
                 }
 
                 var img = $img[0];
 
-                if (img.complete && img.naturalHeight > 0) {
-                    $item.addClass('rp-loaded');
-                } else {
-                    $img.on('load.rpshimmer', function () {
-                        $item.addClass('rp-loaded');
-                    });
-                    $img.on('error.rpshimmer', function () {
-                        $item.addClass('rp-loaded');
-                    });
+                // Listen for load/error regardless (handles lazy-loaded images)
+                $img.on('load.rpshimmer error.rpshimmer', function () {
+                    markLoaded($item);
+                });
+
+                // Already loaded (from cache or fast load)
+                if (img.complete) {
+                    markLoaded($item);
                 }
             });
+
+            // Safety fallback: reveal all after 4 seconds no matter what
+            setTimeout(function () {
+                $items.each(function () {
+                    markLoaded($(this));
+                });
+            }, 4000);
         }
 
         // =========================================
