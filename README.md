@@ -1,6 +1,8 @@
 # Rollpix Product Gallery for Magento 2
 
-A modern, editorial-style product gallery module for Magento 2 that replaces the default Fotorama gallery. Features four layout modes (vertical, grid, fashion, slider), five zoom types (hover, click, lightbox, modal, disabled), thumbnail navigation with overlay option, inline accordion tabs, shimmer loading, fade-in animations, and a mobile-first carousel experience.
+[Version en espanol](README_ES.md)
+
+A modern, editorial-style product gallery module for Magento 2 that replaces the default Fotorama gallery. Features four layout modes (vertical, grid, fashion, slider), five zoom types (hover, click, lightbox, modal, disabled), thumbnail navigation with sliding highlight and overlay option, scroll focus effects, inline accordion tabs, shimmer loading, fade-in animations, and a mobile-first carousel experience.
 
 ![Magento 2](https://img.shields.io/badge/Magento-2.4.7--2.4.8-orange.svg)
 ![PHP](https://img.shields.io/badge/PHP-8.1--8.4-blue.svg)
@@ -11,7 +13,7 @@ A modern, editorial-style product gallery module for Magento 2 that replaces the
 ### Layout Modes
 - **Vertical**: Images stacked in a single column, product info on the side
 - **Grid**: Multi-column image grid (2 or 3 columns) with product info sidebar
-- **Fashion**: Alternating 1-2 image pattern (1 full-width, 2 half-width, repeat) with orphan handling
+- **Fashion**: Alternating 1-2 image pattern (1 full-width, 2 half-width, repeat)
 - **Slider**: Single image at a time with configurable transitions, arrows, dots, keyboard, and mousewheel navigation
 - **Configurable Position**: Gallery on left or right side
 - **Flexible Column Ratios**: 20/80 through 80/20 in 5% increments (13 options)
@@ -28,7 +30,8 @@ A modern, editorial-style product gallery module for Magento 2 that replaces the
 ### Thumbnail Navigation (Slider Layout)
 - **Positions**: Left, Right, or Below the slider image
 - **Display Styles**: Outside (alongside image) or Overlay (floating inside image with blur background)
-- **Active State**: Highlighted border on the currently visible image
+- **Thumbnail Shape**: Square (cropped) or Preserve aspect ratio
+- **Sliding Highlight**: Animated border indicator that slides between thumbnails on change (Fotorama-style)
 - **Overlay Arrow Fix**: Slider arrows automatically shift inward when overlay thumbnails are active
 
 ### Zoom Options
@@ -45,8 +48,9 @@ A modern, editorial-style product gallery module for Magento 2 that replaces the
 - Desktop only: on mobile, original Magento tabs are restored
 
 ### Effects & Animations
-- **Shimmer Loading**: Animated shimmer placeholder while images load, with smooth fade-in on completion
+- **Shimmer Loading**: Animated shimmer placeholder while images load, with smooth fade-in on completion. Includes JS timeout fallback (4s) and CSS animation fallback (5s)
 - **Fade-in on Scroll**: Subtle opacity + slide-up animation when images enter the viewport (alternative to shimmer)
+- **Scroll Focus**: Highlights the image closest to the viewport center while fading and/or blurring images that scroll away. Options: Fade, Blur, Both, or Disabled. Only for stack layouts (Vertical, Grid, Fashion). Handles tall/portrait images that span the entire viewport
 - **Image Counter**: Fixed position indicator showing current/total image count (slider layout)
 
 ### Sticky Panel
@@ -128,6 +132,7 @@ Navigate to **Stores > Configuration > Rollpix > Product Gallery**
 | Mousewheel Navigation | Scroll to switch slides (slider mode) | Yes |
 | Thumbnail Navigation | Left, Right, Bottom, or Disabled (slider mode) | Disabled |
 | Thumbnail Display Style | Outside or Overlay (slider mode) | Outside |
+| Thumbnail Shape | Square (cropped) or Preserve aspect ratio (slider mode) | Square |
 
 ### Zoom Settings
 
@@ -143,6 +148,7 @@ Navigate to **Stores > Configuration > Rollpix > Product Gallery**
 |--------|-------------|---------|
 | Shimmer Loading | Animated placeholder while images load | No |
 | Fade-in on Scroll | Opacity + slide-up animation on viewport entry (requires shimmer off) | No |
+| Scroll Focus Effect | Fade, Blur, Both, or Disabled. Highlights centered image (stack layouts only) | Disabled |
 | Image Counter | Position indicator for slider layout | No |
 
 ### Product Tabs
@@ -273,6 +279,7 @@ app/code/Rollpix/ProductGallery/
 +-- registration.php
 +-- composer.json
 +-- README.md
++-- README_ES.md
 +-- LICENSE
 +-- etc/
 |   +-- module.xml
@@ -302,6 +309,8 @@ app/code/Rollpix/ProductGallery/
 |       +-- SliderTransition.php
 |       +-- ThumbnailPosition.php
 |       +-- ThumbnailStyle.php
+|       +-- ThumbnailShape.php
+|       +-- FocusStyle.php
 +-- ViewModel/
 |   +-- GalleryConfig.php
 +-- view/
@@ -425,12 +434,17 @@ Contributions are welcome! Please follow these steps:
 
 ## Changelog
 
-### 1.5.0 (2026-02-14)
-- **Modal Zoom**: New zoom type that opens a full-screen overlay with all product images stacked vertically; clicking image N scrolls the modal to that image
-- Scroll indicator with bounce animation, auto-hides after 3 seconds or on first scroll
-- Close modal via X button, clicking the dark overlay, or pressing Escape
-- Body scroll locked while modal is open
-- Fix overlay thumbnail strips overlapping slider navigation arrows (left and right positions)
+### 1.5.0 (2026-02-15)
+- **Modal Zoom**: New zoom type that opens a full-screen overlay with all product images stacked vertically; clicking image N scrolls the modal to that image. Scroll indicator with bounce animation, auto-hides after 3 seconds or on first scroll. Close via X button, overlay click, or Escape key
+- **Scroll Focus effect**: New effect for stack layouts (Vertical, Grid, Fashion) that highlights the image closest to the viewport center while fading and/or blurring images scrolling away. Options: Fade, Blur, Both, or Disabled. Includes dead zone for the centered image and smart handling of tall/portrait images that span the entire viewport
+- **Sliding thumbnail highlight**: Animated border indicator that slides between thumbnails on change (Fotorama-style transition)
+- **Thumbnail shape option**: New admin setting to preserve image aspect ratio in thumbnails instead of forcing square crop
+- **Conditional slider arrows/dots**: Arrows and dots are no longer rendered in HTML when disabled in admin (fixes CSS !important override issue)
+- Fix shimmer + fade-in conflict: mutually exclusive in both template and JS (shimmer takes priority)
+- Fix shimmer not resolving: robust image load detection with JS timeout fallback (4s) and CSS animation fallback (5s)
+- Increase shimmer animation contrast for better visibility
+- Fix overlay thumbnail strips overlapping slider navigation arrows
+- Fashion layout: last orphan image no longer forced to full width
 
 ### 1.4.0 (2026-02-14)
 - **Slider layout**: New single-image-at-a-time layout with configurable transitions (fade, slide, zoom-fade), direction (horizontal, vertical), navigation arrows, dot indicators, keyboard, and mousewheel support
