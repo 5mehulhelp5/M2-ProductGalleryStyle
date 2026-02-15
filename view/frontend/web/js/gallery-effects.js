@@ -120,20 +120,28 @@ define([
 
             function updateFocus() {
                 var vpCenter = window.innerHeight / 2;
-                // Dead zone: images within center 50% of viewport are fully clear
                 var deadZone = window.innerHeight * 0.25;
                 var maxDist = window.innerHeight * 0.65;
 
                 $items.each(function () {
                     var rect = this.getBoundingClientRect();
-                    var itemCenter = rect.top + rect.height / 2;
-                    var distance = Math.abs(itemCenter - vpCenter);
-                    // factor: 1 = inside dead zone (fully clear), 0 = far away
                     var factor;
-                    if (distance <= deadZone) {
+
+                    // If viewport center is inside this image, it's fully in focus
+                    // (handles tall images that span the entire viewport)
+                    if (rect.top <= vpCenter && rect.bottom >= vpCenter) {
                         factor = 1;
                     } else {
-                        factor = Math.max(0, 1 - (distance - deadZone) / (maxDist - deadZone));
+                        // Distance from nearest edge to viewport center
+                        var distance = rect.bottom < vpCenter
+                            ? vpCenter - rect.bottom
+                            : rect.top - vpCenter;
+
+                        if (distance <= deadZone) {
+                            factor = 1;
+                        } else {
+                            factor = Math.max(0, 1 - (distance - deadZone) / (maxDist - deadZone));
+                        }
                     }
 
                     if (useFade) {
