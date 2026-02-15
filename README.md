@@ -2,6 +2,8 @@
 
 [Version en espanol](README_ES.md)
 
+SPONSOR: [ROLLPIX](https://www.rollpix.com)
+
 A modern, editorial-style product gallery module for Magento 2 that replaces the default Fotorama gallery. Features four layout modes (vertical, grid, fashion, slider), five zoom types (hover, click, lightbox, modal, disabled), thumbnail navigation with sliding highlight and overlay option, scroll focus effects, inline accordion tabs, shimmer loading, fade-in animations, and a mobile-first carousel experience.
 
 ![Magento 2](https://img.shields.io/badge/Magento-2.4.7--2.4.8-orange.svg)
@@ -506,7 +508,7 @@ Contributions are welcome! Please follow these steps:
 - Zoom result uses fixed viewport positioning (follows cursor)
 - Admin config groups reordered: Layout, Zoom, Sticky, Mobile
 
-### 1.0.0 (2025-01-26)
+### 1.0.0 (2026-01-26)
 - Initial release
 - Vertical gallery layout
 - Hover zoom functionality
