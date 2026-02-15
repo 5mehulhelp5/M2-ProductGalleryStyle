@@ -37,6 +37,7 @@ class Config
     private const XML_PATH_SLIDER_DOTS = 'rollpix_gallery/layout/slider_dots';
     private const XML_PATH_SLIDER_MOUSEWHEEL = 'rollpix_gallery/layout/slider_mousewheel';
     private const XML_PATH_THUMBNAIL_STYLE = 'rollpix_gallery/layout/thumbnail_style';
+    private const XML_PATH_THUMBNAIL_SHAPE = 'rollpix_gallery/layout/thumbnail_shape';
     private const XML_PATH_SHIMMER_ENABLED = 'rollpix_gallery/effects/shimmer_enabled';
     private const XML_PATH_FADEIN_ENABLED = 'rollpix_gallery/effects/fadein_enabled';
     private const XML_PATH_COUNTER_ENABLED = 'rollpix_gallery/effects/counter_enabled';
@@ -247,6 +248,15 @@ class Config
         ) ?: 'outside';
     }
 
+    public function getThumbnailShape(?int $storeId = null): string
+    {
+        return (string) $this->scopeConfig->getValue(
+            self::XML_PATH_THUMBNAIL_SHAPE,
+            ScopeInterface::SCOPE_STORE,
+            $storeId
+        ) ?: 'square';
+    }
+
     public function isShimmerEnabled(?int $storeId = null): bool
     {
         return $this->scopeConfig->isSetFlag(
@@ -302,7 +312,8 @@ class Config
                 'gridImageColumns' => $this->getGridImageColumns($storeId),
                 'imageGap' => $this->getImageGap($storeId),
                 'thumbnailPosition' => $this->getThumbnailPosition($storeId),
-                'thumbnailStyle' => $this->getThumbnailStyle($storeId)
+                'thumbnailStyle' => $this->getThumbnailStyle($storeId),
+                'thumbnailShape' => $this->getThumbnailShape($storeId)
             ],
             'mobile' => [
                 'behavior' => $this->getMobileBehavior($storeId)

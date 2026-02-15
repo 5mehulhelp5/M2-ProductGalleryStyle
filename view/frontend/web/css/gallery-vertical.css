@@ -377,7 +377,7 @@
     cursor: pointer;
     overflow: hidden;
     opacity: 0.6;
-    transition: opacity 0.2s ease, border-color 0.2s ease;
+    transition: opacity 0.2s ease;
     text-transform: none !important;
     letter-spacing: normal !important;
     line-height: 0 !important;
@@ -397,7 +397,6 @@
 .rp-thumbnail-item.rp-thumbnail-active:focus,
 .rp-thumbnail-item.rp-thumbnail-active:active {
     opacity: 1;
-    border-color: #333 !important;
 }
 
 .rp-thumbnail-item img {
@@ -405,6 +404,44 @@
     height: 100%;
     object-fit: cover;
     display: block;
+}
+
+/* Preserve aspect ratio mode */
+.rp-thumbnails-preserve .rp-thumbnail-item,
+.rp-thumbnails-preserve .rp-thumbnail-item:hover,
+.rp-thumbnails-preserve .rp-thumbnail-item:focus,
+.rp-thumbnails-preserve .rp-thumbnail-item:active {
+    height: auto !important;
+    min-height: 0 !important;
+    max-height: none !important;
+}
+
+.rp-thumbnails-preserve .rp-thumbnail-item img {
+    height: auto;
+    object-fit: contain;
+}
+
+/* Sliding highlight indicator */
+.rp-thumbnail-strip {
+    position: relative;
+}
+
+.rp-thumbnail-highlight {
+    position: absolute;
+    top: 0;
+    left: 0;
+    border: 2px solid #333;
+    border-radius: 4px;
+    pointer-events: none;
+    z-index: 2;
+    box-sizing: border-box;
+    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1),
+                width 0.3s cubic-bezier(0.4, 0, 0.2, 1),
+                height 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.rp-highlight-no-transition {
+    transition: none !important;
 }
 
 /* ==============================================
@@ -1448,9 +1485,13 @@
         transition: none;
     }
 
-    /* Thumbnails: disable scroll behavior */
+    /* Thumbnails: disable scroll and highlight transition */
     .rp-thumbnail-strip {
         scroll-behavior: auto;
+    }
+
+    .rp-thumbnail-highlight {
+        transition: none;
     }
 
     /* Slider: disable all transitions */

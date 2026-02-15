@@ -107,6 +107,21 @@ class GalleryConfig implements ArgumentInterface
         return $this->config->getThumbnailStyle();
     }
 
+    public function getThumbnailShape(): string
+    {
+        return $this->config->getThumbnailShape();
+    }
+
+    public function isSliderArrowsEnabled(): bool
+    {
+        return $this->config->isSliderArrowsEnabled();
+    }
+
+    public function isSliderDotsEnabled(): bool
+    {
+        return $this->config->isSliderDotsEnabled();
+    }
+
     public function isShimmerEnabled(): bool
     {
         return $this->config->isShimmerEnabled();

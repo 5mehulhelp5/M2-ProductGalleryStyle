@@ -27,6 +27,7 @@
                 <image_gap>20</image_gap>
                 <thumbnail_position>disabled</thumbnail_position>
                 <thumbnail_style>outside</thumbnail_style>
+                <thumbnail_shape>square</thumbnail_shape>
                 <slider_direction>horizontal</slider_direction>
                 <slider_transition>fade</slider_transition>
                 <slider_arrows>1</slider_arrows>

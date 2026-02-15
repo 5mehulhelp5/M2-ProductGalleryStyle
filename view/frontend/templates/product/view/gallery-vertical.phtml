@@ -63,12 +63,20 @@ if ($galleryConfig->isInlineTabsEnabled()) {
 
 // Thumbnails only apply to slider layout
 $thumbnailPosition = $galleryConfig->getThumbnailPosition();
+$thumbnailShape = $galleryConfig->getThumbnailShape();
 if ($layoutType === 'slider' && $thumbnailPosition !== 'disabled') {
     $wrapperClasses[] = 'rp-thumbnails-' . $thumbnailPosition;
     if ($galleryConfig->getThumbnailStyle() === 'overlay') {
         $wrapperClasses[] = 'rp-thumbnails-overlay';
     }
+    if ($thumbnailShape === 'preserve') {
+        $wrapperClasses[] = 'rp-thumbnails-preserve';
+    }
 }
+
+// Slider navigation
+$sliderArrows = $layoutType === 'slider' && $galleryConfig->isSliderArrowsEnabled();
+$sliderDots = $layoutType === 'slider' && $galleryConfig->isSliderDotsEnabled();
 
 // Shimmer and fade-in are mutually exclusive; shimmer takes priority
 if ($galleryConfig->isShimmerEnabled()) {
@@ -160,13 +168,17 @@ $gridImageColumns = $columnCss['gridImageColumns'] ?? 2;
         </div>
 
     <?php if ($layoutType === 'slider'): ?>
+        <?php if ($sliderArrows): ?>
         <button class="rp-slider-prev" type="button" aria-label="<?= $block->escapeHtmlAttr(__('Previous image')) ?>">
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"></polyline></svg>
         </button>
         <button class="rp-slider-next" type="button" aria-label="<?= $block->escapeHtmlAttr(__('Next image')) ?>">
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg>
         </button>
+        <?php endif; ?>
+        <?php if ($sliderDots): ?>
         <div class="rp-slider-dots" data-role="rp-slider-dots"></div>
+        <?php endif; ?>
     </div><!-- /.rp-slider-wrapper -->
     <?php endif; ?>
 

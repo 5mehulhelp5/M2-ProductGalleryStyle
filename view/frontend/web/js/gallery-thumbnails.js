@@ -37,6 +37,7 @@ define([
 
         initThumbnailTracking();
         initThumbnailClicks();
+        initHighlight();
 
         function initThumbnailTracking() {
             // Slider JS manages active thumbnail state
@@ -57,6 +58,7 @@ define([
                         $thumbnails.removeClass('rp-thumbnail-active');
                         $thumb.addClass('rp-thumbnail-active');
                         scrollThumbIntoView($thumb);
+                        moveHighlight($thumb);
                     }
                 });
             }, {
@@ -87,6 +89,54 @@ define([
                     }, 400);
                 }
             });
+        }
+
+        // =========================================
+        // SLIDING HIGHLIGHT INDICATOR
+        // =========================================
+        var $highlight = null;
+
+        function initHighlight() {
+            $highlight = $('<div class="rp-thumbnail-highlight"></div>');
+            $strip.append($highlight);
+
+            // Position on the initially active thumbnail (no animation)
+            var $active = $thumbnails.filter('.rp-thumbnail-active');
+            if ($active.length) {
+                moveHighlight($active, false);
+            }
+
+            // For slider layout, listen to slider change events
+            if (layoutType === 'slider') {
+                $gallery.on('rpslider:change', function (e, currentIndex) {
+                    var $thumb = $thumbnails.eq(currentIndex);
+                    scrollThumbIntoView($thumb);
+                    moveHighlight($thumb);
+                });
+            }
+        }
+
+        function moveHighlight($thumb, animate) {
+            if (!$highlight || !$thumb.length) {
+                return;
+            }
+
+            var el = $thumb[0];
+            var props = {
+                width: el.offsetWidth + 'px',
+                height: el.offsetHeight + 'px',
+                transform: 'translate(' + el.offsetLeft + 'px, ' + el.offsetTop + 'px)'
+            };
+
+            if (animate === false) {
+                $highlight.addClass('rp-highlight-no-transition');
+                $highlight.css(props);
+                // Force reflow then re-enable transition
+                $highlight[0].offsetHeight;
+                $highlight.removeClass('rp-highlight-no-transition');
+            } else {
+                $highlight.css(props);
+            }
         }
 
         function scrollThumbIntoView($thumb) {

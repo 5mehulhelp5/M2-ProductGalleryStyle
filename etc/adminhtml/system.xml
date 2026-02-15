@@ -274,6 +274,22 @@
                         <field id="thumbnail_position" separator=",">left,right,bottom</field>
                     </depends>
                 </field>
+
+                <field id="thumbnail_shape"
+                       translate="label comment"
+                       type="select"
+                       sortOrder="47"
+                       showInDefault="1"
+                       showInWebsite="1"
+                       showInStore="1">
+                    <label>Thumbnail Shape</label>
+                    <comment>Square: thumbnails are cropped to a square. Preserve: thumbnails keep the original image aspect ratio.</comment>
+                    <source_model>Rollpix\ProductGallery\Model\Config\Source\ThumbnailShape</source_model>
+                    <depends>
+                        <field id="type">slider</field>
+                        <field id="thumbnail_position" separator=",">left,right,bottom</field>
+                    </depends>
+                </field>
             </group>
 
             <!-- Effects & Animations Group -->
