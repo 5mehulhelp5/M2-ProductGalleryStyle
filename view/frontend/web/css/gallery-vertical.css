@@ -1416,6 +1416,30 @@
 }
 
 /* ==============================================
+   Placeholder (no product images)
+   ============================================== */
+
+.rp-placeholder .rp-gallery-images {
+    display: flex;
+    flex-direction: column;
+}
+
+.rp-placeholder-item {
+    display: block;
+    text-align: center;
+    background: #f5f5f5;
+    border-radius: 4px;
+}
+
+.rp-placeholder-item img {
+    max-width: 100%;
+    height: auto;
+    display: block;
+    margin: 0 auto;
+    opacity: 0.6;
+}
+
+/* ==============================================
    Accessibility
    ============================================== */
 
