@@ -30,9 +30,9 @@ class ImagePlugin
     /**
      * Bypass image processing for video files
      */
-    public function aroundSetBaseFile(Image $subject, callable $proceed, string $file): Image
+    public function aroundSetBaseFile(Image $subject, callable $proceed, ?string $file): Image
     {
-        if ($this->isVideoFile($file)) {
+        if ($file !== null && $this->isVideoFile($file)) {
             $subject->setData('_rp_is_video', true);
             $subject->setData('_rp_video_file', $file);
             return $subject;
@@ -58,7 +58,7 @@ class ImagePlugin
         return $result;
     }
 
-    private function isVideoFile(string $file): bool
+    private function isVideoFile(?string $file): bool
     {
         return strtolower(pathinfo($file, PATHINFO_EXTENSION)) === 'mp4';
     }
