@@ -183,6 +183,7 @@ $gridImageColumns = $columnCss['gridImageColumns'] ?? 2;
                     <?php if ($isVideo): ?>
                         <span class="rp-gallery-item rp-gallery-video"
                               data-media-type="video"
+                              data-rp-value-id="<?= (int)$image->getData('value_id') ?>"
                               data-gallery="product-gallery">
                             <video
                                 <?php if ($galleryConfig->isVideoAutoplay()): ?>autoplay<?php endif; ?>
@@ -201,6 +202,7 @@ $gridImageColumns = $columnCss['gridImageColumns'] ?? 2;
                         <a href="<?= $block->escapeUrl($largeImageUrl) ?>"
                            class="rp-gallery-item <?= $zoomType === 'lightbox' ? 'glightbox' : '' ?>"
                            data-media-type="image"
+                           data-rp-value-id="<?= (int)$image->getData('value_id') ?>"
                            data-gallery="product-gallery"
                            <?php if ($zoomType === 'lightbox'): ?>
                            data-glightbox="title: <?= $block->escapeHtmlAttr($imageLabel) ?>"
@@ -241,6 +243,7 @@ $gridImageColumns = $columnCss['gridImageColumns'] ?? 2;
             <button class="rp-thumbnail-item<?= $index === 0 ? ' rp-thumbnail-active' : '' ?><?= $isThumbVideo ? ' rp-thumbnail-video' : '' ?>"
                     type="button"
                     data-thumb-index="<?= (int)$index ?>"
+                    data-rp-value-id="<?= (int)$image->getData('value_id') ?>"
                     data-media-type="<?= $isThumbVideo ? 'video' : 'image' ?>"
                     aria-label="<?= $block->escapeHtmlAttr(__('Go to %1 %2', $isThumbVideo ? __('video') : __('image'), $index + 1)) ?>">
                 <?php if ($isThumbVideo): ?>
