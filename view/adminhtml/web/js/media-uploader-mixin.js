@@ -2,10 +2,14 @@
  * Rollpix ProductGallery - Media Uploader Mixin
  *
  * Extends the admin media uploader widget to allow MP4 video uploads.
- * Uses a Proxy on window.Uppy to intercept the Uppy constructor
- * (which is a read-only getter) and bypass the file extension check
- * for video files while keeping allowedResize=false so the Compressor
- * plugin skips them.
+ *
+ * Strategy 1 (preferred): Proxy on window.Uppy to intercept the constructor
+ *   and bypass the onBeforeFileAdded extension check for video files.
+ *
+ * Strategy 2 (fallback): If window.Uppy is frozen/non-writable, permanently
+ *   patch $.inArray so that 'mp4' passes the allowedExt check. The Compressor
+ *   plugin will attempt to process the video but fail gracefully, and the
+ *   original file is uploaded as-is.
  *
  * @category  Rollpix
  * @package   Rollpix_ProductGallery
@@ -33,6 +37,7 @@ define([
                     var origUppyClass = origUppyNamespace.Uppy,
                         progressTmpl = mageTemplate('[data-template="uploader"]');
 
+                    // ── Strategy 1: Proxy on window.Uppy namespace ──
                     try {
                         window.Uppy = new Proxy(origUppyNamespace, {
                             get: function (target, prop) {
@@ -89,7 +94,27 @@ define([
 
                         proxyApplied = true;
                     } catch (e) {
-                        // Proxy not available or window.Uppy not writable
+                        // window.Uppy is frozen or non-writable — fall through
+                    }
+
+                    // ── Strategy 2: Patch $.inArray as fallback ──
+                    if (!proxyApplied && !$.inArray._rpVideoPatched) {
+                        var origInArray = $.inArray;
+
+                        $.inArray = function (elem, arr, fromIndex) {
+                            // Allow mp4 through the allowedExt check (arrays that contain 'jpg')
+                            if (typeof elem === 'string' &&
+                                elem.toLowerCase() === 'mp4' &&
+                                Array.isArray(arr) &&
+                                origInArray.call($, 'jpg', arr) !== -1
+                            ) {
+                                return 0;
+                            }
+
+                            return origInArray.apply($, arguments);
+                        };
+
+                        $.inArray._rpVideoPatched = true;
                     }
                 }
 
