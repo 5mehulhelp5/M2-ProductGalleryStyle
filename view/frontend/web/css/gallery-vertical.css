@@ -1591,3 +1591,124 @@
         filter: none !important;
     }
 }
+
+/* ==============================================
+   Video Support
+   ============================================== */
+
+/* Video gallery item container */
+.rp-gallery-video {
+    display: block;
+    position: relative;
+    overflow: hidden;
+    line-height: 0;
+    cursor: default;
+}
+
+/* Video element */
+.rp-video-element {
+    width: 100%;
+    height: auto;
+    display: block;
+}
+
+/* Disable zoom-related cursors on video items */
+.rp-zoom-hover .rp-gallery-video,
+.rp-zoom-click .rp-gallery-video,
+.rp-zoom-lightbox .rp-gallery-video,
+.rp-zoom-modal .rp-gallery-video {
+    cursor: default;
+}
+
+/* Slider layout: video fills container */
+.rp-layout-slider .rp-gallery-video .rp-video-element {
+    width: 100%;
+    height: auto;
+}
+
+/* Shimmer: video loading state */
+.rp-shimmer .rp-gallery-video .rp-video-element {
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.rp-shimmer .rp-gallery-video.rp-loaded .rp-video-element {
+    opacity: 1;
+}
+
+/* Fade-in: video items */
+.rp-fadein .rp-gallery-video {
+    opacity: 0;
+    transform: translateY(20px);
+    transition: opacity 0.5s ease, transform 0.5s ease;
+}
+
+.rp-fadein .rp-gallery-video.rp-visible {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+/* Thumbnail play icon overlay */
+.rp-thumbnail-video {
+    position: relative;
+}
+
+.rp-thumbnail-play-icon {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    z-index: 3;
+    width: 24px;
+    height: 24px;
+    background: rgba(0, 0, 0, 0.5);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    pointer-events: none;
+}
+
+.rp-thumbnail-play-icon svg {
+    width: 12px;
+    height: 12px;
+    margin-left: 2px;
+}
+
+.rp-thumbnail-video-preview {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+}
+
+/* Mobile carousel: video in slide */
+.rp-carousel-slide .rp-video-element {
+    width: 100%;
+    height: auto;
+    max-height: 90vh;
+}
+
+/* Print: hide video, show placeholder text */
+@media print {
+    .rp-gallery-video .rp-video-element {
+        display: none;
+    }
+    .rp-gallery-video::after {
+        content: '[Video]';
+        display: block;
+        padding: 40px;
+        text-align: center;
+        background: #f0f0f0;
+        color: #999;
+        font-size: 14px;
+    }
+}
+
+/* Reduced motion: handled by JS (pause autoplay) */
+@media (prefers-reduced-motion: reduce) {
+    .rp-shimmer .rp-gallery-video .rp-video-element,
+    .rp-fadein .rp-gallery-video {
+        transition: none;
+    }
+}

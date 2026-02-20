@@ -1,0 +1,52 @@
+/**
+ * Rollpix ProductGallery - Listing Page Video Styles
+ *
+ * Styles for product videos on category/listing pages.
+ *
+ * @category  Rollpix
+ * @package   Rollpix_ProductGallery
+ */
+
+/* Video wrapper in product card */
+.rp-listing-video-wrapper {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+}
+
+/* Video element in product listing */
+.rp-listing-video {
+    width: 100%;
+    height: auto;
+    display: block;
+}
+
+/* When inside Magento's absolute-positioned image container */
+.product-image-container .rp-listing-video-wrapper {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+}
+
+.product-image-container .rp-listing-video {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+/* Print: hide listing videos */
+@media print {
+    .rp-listing-video-wrapper {
+        display: none;
+    }
+}
+
+/* Reduced motion */
+@media (prefers-reduced-motion: reduce) {
+    .rp-listing-video {
+        /* JS handles pause; visual hint only */
+    }
+}

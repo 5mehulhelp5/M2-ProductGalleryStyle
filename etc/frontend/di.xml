@@ -1,0 +1,19 @@
+<?xml version="1.0"?>
+<!--
+/**
+ * Rollpix ProductGallery Frontend Dependency Injection
+ *
+ * @category  Rollpix
+ * @package   Rollpix_ProductGallery
+ */
+-->
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:noNamespaceSchemaLocation="urn:magento:framework:ObjectManager/etc/config.xsd">
+
+    <!-- Swap img for video on product listing pages -->
+    <type name="Magento\Catalog\Block\Product\Image">
+        <plugin name="rollpix_listing_video_swap"
+                type="Rollpix\ProductGallery\Plugin\Catalog\Block\Product\ImagePlugin"/>
+    </type>
+
+</config>

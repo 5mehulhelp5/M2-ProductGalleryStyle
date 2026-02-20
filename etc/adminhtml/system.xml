@@ -78,6 +78,149 @@
                 </field>
             </group>
 
+            <!-- Video Group -->
+            <group id="video"
+                   translate="label"
+                   type="text"
+                   sortOrder="15"
+                   showInDefault="1"
+                   showInWebsite="1"
+                   showInStore="1">
+                <label>Video Settings</label>
+
+                <field id="enabled"
+                       translate="label comment"
+                       type="select"
+                       sortOrder="10"
+                       showInDefault="1"
+                       showInWebsite="1"
+                       showInStore="1">
+                    <label>Enable Video Support</label>
+                    <comment>Allow MP4 videos in the product gallery</comment>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                </field>
+
+                <field id="autoplay"
+                       translate="label comment"
+                       type="select"
+                       sortOrder="20"
+                       showInDefault="1"
+                       showInWebsite="1"
+                       showInStore="1">
+                    <label>Autoplay</label>
+                    <comment>Automatically play videos when they become visible in the viewport</comment>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                    <depends>
+                        <field id="enabled">1</field>
+                    </depends>
+                </field>
+
+                <field id="loop"
+                       translate="label comment"
+                       type="select"
+                       sortOrder="30"
+                       showInDefault="1"
+                       showInWebsite="1"
+                       showInStore="1">
+                    <label>Loop</label>
+                    <comment>Restart the video automatically when it ends</comment>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                    <depends>
+                        <field id="enabled">1</field>
+                    </depends>
+                </field>
+
+                <field id="muted"
+                       translate="label comment"
+                       type="select"
+                       sortOrder="40"
+                       showInDefault="1"
+                       showInWebsite="1"
+                       showInStore="1">
+                    <label>Muted</label>
+                    <comment>Mute video audio. Required for autoplay in most browsers.</comment>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                    <depends>
+                        <field id="enabled">1</field>
+                    </depends>
+                </field>
+
+                <field id="controls"
+                       translate="label comment"
+                       type="select"
+                       sortOrder="50"
+                       showInDefault="1"
+                       showInWebsite="1"
+                       showInStore="1">
+                    <label>Show Player Controls</label>
+                    <comment>Display the native video player controls (play, pause, volume, etc.)</comment>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                    <depends>
+                        <field id="enabled">1</field>
+                    </depends>
+                </field>
+
+                <field id="object_fit"
+                       translate="label comment"
+                       type="select"
+                       sortOrder="60"
+                       showInDefault="1"
+                       showInWebsite="1"
+                       showInStore="1">
+                    <label>Video Fit Mode</label>
+                    <comment>How the video fits its container when aspect ratios differ. Cover: crops to fill. Contain: shows entire video with possible letterboxing.</comment>
+                    <source_model>Rollpix\ProductGallery\Model\Config\Source\VideoObjectFit</source_model>
+                    <depends>
+                        <field id="enabled">1</field>
+                    </depends>
+                </field>
+
+                <field id="lazy_load"
+                       translate="label comment"
+                       type="select"
+                       sortOrder="70"
+                       showInDefault="1"
+                       showInWebsite="1"
+                       showInStore="1">
+                    <label>Lazy Load Videos</label>
+                    <comment>Only load video data when the video enters the viewport. Improves page load performance.</comment>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                    <depends>
+                        <field id="enabled">1</field>
+                    </depends>
+                </field>
+
+                <field id="max_size"
+                       translate="label comment"
+                       type="select"
+                       sortOrder="80"
+                       showInDefault="1"
+                       showInWebsite="1"
+                       showInStore="1">
+                    <label>Maximum Video File Size (MB)</label>
+                    <comment>Maximum allowed file size for MP4 video uploads in the product media gallery</comment>
+                    <source_model>Rollpix\ProductGallery\Model\Config\Source\VideoMaxSize</source_model>
+                    <depends>
+                        <field id="enabled">1</field>
+                    </depends>
+                </field>
+
+                <field id="listing_enabled"
+                       translate="label comment"
+                       type="select"
+                       sortOrder="90"
+                       showInDefault="1"
+                       showInWebsite="1"
+                       showInStore="1">
+                    <label>Enable Video on Category Pages</label>
+                    <comment>Show product videos on category listing pages when the video has the thumbnail image role</comment>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                    <depends>
+                        <field id="enabled">1</field>
+                    </depends>
+                </field>
+            </group>
+
             <!-- Layout Group -->
             <group id="layout"
                    translate="label"

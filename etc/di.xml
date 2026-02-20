@@ -16,4 +16,16 @@
         </arguments>
     </type>
 
+    <!-- Allow MP4 uploads in product media gallery -->
+    <type name="Magento\Catalog\Model\Product\Media\Config">
+        <plugin name="rollpix_allow_mp4_media"
+                type="Rollpix\ProductGallery\Plugin\Catalog\Product\Media\ConfigPlugin"/>
+    </type>
+
+    <!-- Bypass image resize/cache for MP4 video files -->
+    <type name="Magento\Catalog\Model\Product\Image">
+        <plugin name="rollpix_video_image_bypass"
+                type="Rollpix\ProductGallery\Plugin\Catalog\Model\Product\ImagePlugin"/>
+    </type>
+
 </config>

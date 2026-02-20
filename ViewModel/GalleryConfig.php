@@ -142,6 +142,59 @@ class GalleryConfig implements ArgumentInterface
         return $this->config->getFocusStyle();
     }
 
+    public function isVideoEnabled(): bool
+    {
+        return $this->config->isVideoEnabled();
+    }
+
+    public function isVideoAutoplay(): bool
+    {
+        return $this->config->isVideoAutoplay();
+    }
+
+    public function isVideoLoop(): bool
+    {
+        return $this->config->isVideoLoop();
+    }
+
+    public function isVideoMuted(): bool
+    {
+        return $this->config->isVideoMuted();
+    }
+
+    public function isVideoControlsEnabled(): bool
+    {
+        return $this->config->isVideoControlsEnabled();
+    }
+
+    public function getVideoObjectFit(): string
+    {
+        return $this->config->getVideoObjectFit();
+    }
+
+    public function isVideoLazyLoad(): bool
+    {
+        return $this->config->isVideoLazyLoad();
+    }
+
+    public function isVideoListingEnabled(): bool
+    {
+        return $this->config->isVideoListingEnabled();
+    }
+
+    public function getVideoMaxSize(): int
+    {
+        return $this->config->getVideoMaxSize();
+    }
+
+    /**
+     * Check if a media gallery file is a video
+     */
+    public function isVideoFile(string $file): bool
+    {
+        return strtolower(pathinfo($file, PATHINFO_EXTENSION)) === 'mp4';
+    }
+
     /**
      * Get JS configuration as JSON
      */

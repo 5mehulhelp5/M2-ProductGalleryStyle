@@ -125,20 +125,28 @@ define([
 
             // Adjust wrapper height to match current slide (prevents blank space)
             var $currentSlide = $items.eq(currentIndex);
-            var img = $currentSlide.find('img')[0];
+            var media = $currentSlide.find('img')[0] || $currentSlide.find('video')[0];
 
-            if (img) {
+            if (media) {
                 var setHeight = function () {
-                    var h = img.offsetHeight;
+                    var h = media.offsetHeight || 0;
                     if (h > 0) {
                         $wrapper.css('height', h + 'px');
                     }
                 };
 
-                if (img.complete && img.naturalHeight > 0) {
-                    setHeight();
+                if (media.tagName === 'VIDEO') {
+                    if (media.readyState >= 1) {
+                        setHeight();
+                    } else {
+                        $(media).one('loadedmetadata', setHeight);
+                    }
                 } else {
-                    $(img).one('load', setHeight);
+                    if (media.complete && media.naturalHeight > 0) {
+                        setHeight();
+                    } else {
+                        $(media).one('load', setHeight);
+                    }
                 }
             }
 

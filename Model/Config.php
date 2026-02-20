@@ -42,6 +42,15 @@ class Config
     private const XML_PATH_FADEIN_ENABLED = 'rollpix_gallery/effects/fadein_enabled';
     private const XML_PATH_COUNTER_ENABLED = 'rollpix_gallery/effects/counter_enabled';
     private const XML_PATH_FOCUS_STYLE = 'rollpix_gallery/effects/focus_style';
+    private const XML_PATH_VIDEO_ENABLED = 'rollpix_gallery/video/enabled';
+    private const XML_PATH_VIDEO_AUTOPLAY = 'rollpix_gallery/video/autoplay';
+    private const XML_PATH_VIDEO_LOOP = 'rollpix_gallery/video/loop';
+    private const XML_PATH_VIDEO_MUTED = 'rollpix_gallery/video/muted';
+    private const XML_PATH_VIDEO_CONTROLS = 'rollpix_gallery/video/controls';
+    private const XML_PATH_VIDEO_OBJECT_FIT = 'rollpix_gallery/video/object_fit';
+    private const XML_PATH_VIDEO_LAZY_LOAD = 'rollpix_gallery/video/lazy_load';
+    private const XML_PATH_VIDEO_LISTING_ENABLED = 'rollpix_gallery/video/listing_enabled';
+    private const XML_PATH_VIDEO_MAX_SIZE = 'rollpix_gallery/video/max_size';
 
     private ScopeConfigInterface $scopeConfig;
 
@@ -293,6 +302,87 @@ class Config
         ) ?: 'disabled';
     }
 
+    public function isVideoEnabled(?int $storeId = null): bool
+    {
+        return $this->scopeConfig->isSetFlag(
+            self::XML_PATH_VIDEO_ENABLED,
+            ScopeInterface::SCOPE_STORE,
+            $storeId
+        );
+    }
+
+    public function isVideoAutoplay(?int $storeId = null): bool
+    {
+        return $this->scopeConfig->isSetFlag(
+            self::XML_PATH_VIDEO_AUTOPLAY,
+            ScopeInterface::SCOPE_STORE,
+            $storeId
+        );
+    }
+
+    public function isVideoLoop(?int $storeId = null): bool
+    {
+        return $this->scopeConfig->isSetFlag(
+            self::XML_PATH_VIDEO_LOOP,
+            ScopeInterface::SCOPE_STORE,
+            $storeId
+        );
+    }
+
+    public function isVideoMuted(?int $storeId = null): bool
+    {
+        return $this->scopeConfig->isSetFlag(
+            self::XML_PATH_VIDEO_MUTED,
+            ScopeInterface::SCOPE_STORE,
+            $storeId
+        );
+    }
+
+    public function isVideoControlsEnabled(?int $storeId = null): bool
+    {
+        return $this->scopeConfig->isSetFlag(
+            self::XML_PATH_VIDEO_CONTROLS,
+            ScopeInterface::SCOPE_STORE,
+            $storeId
+        );
+    }
+
+    public function getVideoObjectFit(?int $storeId = null): string
+    {
+        return (string) $this->scopeConfig->getValue(
+            self::XML_PATH_VIDEO_OBJECT_FIT,
+            ScopeInterface::SCOPE_STORE,
+            $storeId
+        ) ?: 'cover';
+    }
+
+    public function isVideoLazyLoad(?int $storeId = null): bool
+    {
+        return $this->scopeConfig->isSetFlag(
+            self::XML_PATH_VIDEO_LAZY_LOAD,
+            ScopeInterface::SCOPE_STORE,
+            $storeId
+        );
+    }
+
+    public function isVideoListingEnabled(?int $storeId = null): bool
+    {
+        return $this->scopeConfig->isSetFlag(
+            self::XML_PATH_VIDEO_LISTING_ENABLED,
+            ScopeInterface::SCOPE_STORE,
+            $storeId
+        );
+    }
+
+    public function getVideoMaxSize(?int $storeId = null): int
+    {
+        return (int) $this->scopeConfig->getValue(
+            self::XML_PATH_VIDEO_MAX_SIZE,
+            ScopeInterface::SCOPE_STORE,
+            $storeId
+        ) ?: 20;
+    }
+
     /**
      * Get all configuration as array for JS
      */
@@ -339,6 +429,15 @@ class Config
                 'fadeInEnabled' => $this->isFadeInEnabled($storeId),
                 'counterEnabled' => $this->isCounterEnabled($storeId),
                 'focusStyle' => $this->getFocusStyle($storeId)
+            ],
+            'video' => [
+                'enabled' => $this->isVideoEnabled($storeId),
+                'autoplay' => $this->isVideoAutoplay($storeId),
+                'loop' => $this->isVideoLoop($storeId),
+                'muted' => $this->isVideoMuted($storeId),
+                'controls' => $this->isVideoControlsEnabled($storeId),
+                'objectFit' => $this->getVideoObjectFit($storeId),
+                'lazyLoad' => $this->isVideoLazyLoad($storeId)
             ]
         ];
     }
