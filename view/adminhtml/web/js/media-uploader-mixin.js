@@ -2,7 +2,8 @@
  * Rollpix ProductGallery - Media Uploader Mixin
  *
  * Extends the admin media uploader widget to allow MP4 video uploads.
- * Intercepts the Uppy constructor to bypass the file extension check
+ * Uses a Proxy on window.Uppy to intercept the Uppy constructor
+ * (which is a read-only getter) and bypass the file extension check
  * for video files while keeping allowedResize=false so the Compressor
  * plugin skips them.
  *
@@ -25,59 +26,77 @@ define([
 
             _create: function () {
                 var widgetElement = this.element,
-                    OrigUppy = window.Uppy && window.Uppy.Uppy;
+                    origUppyNamespace = window.Uppy,
+                    proxyApplied = false;
 
-                if (OrigUppy) {
-                    var progressTmpl = mageTemplate('[data-template="uploader"]');
+                if (origUppyNamespace && origUppyNamespace.Uppy) {
+                    var origUppyClass = origUppyNamespace.Uppy,
+                        progressTmpl = mageTemplate('[data-template="uploader"]');
 
-                    window.Uppy.Uppy = function (opts) {
-                        if (opts && typeof opts.onBeforeFileAdded === 'function') {
-                            var origCallback = opts.onBeforeFileAdded;
+                    try {
+                        window.Uppy = new Proxy(origUppyNamespace, {
+                            get: function (target, prop) {
+                                if (prop === 'Uppy') {
+                                    var wrapper = function (opts) {
+                                        if (opts && typeof opts.onBeforeFileAdded === 'function') {
+                                            var origCallback = opts.onBeforeFileAdded;
 
-                            opts.onBeforeFileAdded = function (currentFile) {
-                                var ext = currentFile.extension
-                                    ? currentFile.extension.toLowerCase()
-                                    : '';
+                                            opts.onBeforeFileAdded = function (currentFile) {
+                                                var ext = currentFile.extension
+                                                    ? currentFile.extension.toLowerCase()
+                                                    : '';
 
-                                if (videoExtensions.indexOf(ext) !== -1) {
-                                    var fileSize = typeof currentFile.size === 'undefined'
-                                        ? $.mage.__('We could not detect a size.')
-                                        : byteConvert(currentFile.size);
+                                                if (videoExtensions.indexOf(ext) !== -1) {
+                                                    var fileSize = typeof currentFile.size === 'undefined'
+                                                        ? $.mage.__('We could not detect a size.')
+                                                        : byteConvert(currentFile.size);
 
-                                    var fileId = Math.random().toString(33).substr(2, 18);
+                                                    var fileId = Math.random().toString(33).substr(2, 18);
 
-                                    var tmpl = progressTmpl({
-                                        data: {
-                                            name: currentFile.name,
-                                            size: fileSize,
-                                            id: fileId
+                                                    var tmpl = progressTmpl({
+                                                        data: {
+                                                            name: currentFile.name,
+                                                            size: fileSize,
+                                                            id: fileId
+                                                        }
+                                                    });
+
+                                                    var modifiedFile = Object.assign({}, currentFile, {
+                                                        id: currentFile.id + '-' + fileId,
+                                                        tempFileId: fileId
+                                                    });
+
+                                                    $(tmpl).appendTo(widgetElement);
+
+                                                    return modifiedFile;
+                                                }
+
+                                                return origCallback(currentFile);
+                                            };
                                         }
-                                    });
 
-                                    var modifiedFile = Object.assign({}, currentFile, {
-                                        id: currentFile.id + '-' + fileId,
-                                        tempFileId: fileId
-                                    });
+                                        return new origUppyClass(opts);
+                                    };
 
-                                    $(tmpl).appendTo(widgetElement);
+                                    wrapper.prototype = origUppyClass.prototype;
 
-                                    return modifiedFile;
+                                    return wrapper;
                                 }
 
-                                return origCallback(currentFile);
-                            };
-                        }
+                                return target[prop];
+                            }
+                        });
 
-                        return new OrigUppy(opts);
-                    };
-
-                    window.Uppy.Uppy.prototype = OrigUppy.prototype;
+                        proxyApplied = true;
+                    } catch (e) {
+                        // Proxy not available or window.Uppy not writable
+                    }
                 }
 
                 this._super();
 
-                if (OrigUppy) {
-                    window.Uppy.Uppy = OrigUppy;
+                if (proxyApplied) {
+                    window.Uppy = origUppyNamespace;
                 }
             }
         });
