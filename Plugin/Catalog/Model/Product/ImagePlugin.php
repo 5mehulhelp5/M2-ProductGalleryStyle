@@ -41,6 +41,20 @@ class ImagePlugin
     }
 
     /**
+     * Tell Magento the video is already "cached" so it skips resize/processing.
+     * Without this, isCached() crashes because _mediaDirectory is null
+     * (since setBaseFile was skipped by our around-plugin).
+     */
+    public function aroundIsCached(Image $subject, callable $proceed): bool
+    {
+        if ($subject->getData('_rp_is_video')) {
+            return true;
+        }
+
+        return $proceed();
+    }
+
+    /**
      * Return direct media URL for video files instead of cached image URL
      */
     public function afterGetUrl(Image $subject, ?string $result): ?string
