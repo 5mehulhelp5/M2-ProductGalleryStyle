@@ -12,7 +12,6 @@ define(['jquery', 'mage/translate'], function ($) {
     'use strict';
 
     return function (originalWidget) {
-        console.log('[RP] new-video-dialog-mixin loaded', typeof $.mage.newVideoDialog);
         $.widget('mage.newVideoDialog', $.mage.newVideoDialog, {
 
             /* ── state ─────────────────────────────────────── */
@@ -27,7 +26,6 @@ define(['jquery', 'mage/translate'], function ($) {
             /* ── lifecycle ─────────────────────────────────── */
 
             _create: function () {
-                console.log('[RP] newVideoDialog._create called, element:', this.element[0]);
                 this._super();
                 this._initLocalVideoUI();
             },
@@ -36,23 +34,11 @@ define(['jquery', 'mage/translate'], function ($) {
              * Build the toggle buttons and file input, insert them into the dialog form.
              */
             _initLocalVideoUI: function () {
-                console.log('[RP] _initLocalVideoUI, _videoUrlSelector:', this._videoUrlSelector);
-                console.log('[RP] element HTML (first 500):', this.element.html().substring(0, 500));
-
                 var urlField = this.element.find(this._videoUrlSelector).closest('.admin__field'),
                     self = this;
 
-                console.log('[RP] urlField by _videoUrlSelector:', urlField.length);
-
                 if (!urlField.length) {
                     urlField = this.element.find('[name="video_url"]').closest('.field');
-                    console.log('[RP] urlField by [name=video_url]:', urlField.length);
-                }
-
-                if (!urlField.length) {
-                    // Last resort: try any .field or .admin__field
-                    console.log('[RP] All fields:', this.element.find('.admin__field, .field').length);
-                    console.log('[RP] All inputs:', this.element.find('input, textarea, select').map(function() { return this.name || this.id; }).get());
                 }
 
                 /* Source toggle ------------------------------------------------ */
