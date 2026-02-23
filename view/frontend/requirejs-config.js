@@ -18,5 +18,15 @@ var config = {
             'rpGalleryVideo': 'Rollpix_ProductGallery/js/gallery-video',
             'rpGalleryListingVideo': 'Rollpix_ProductGallery/js/gallery-listing-video'
         }
+    },
+    config: {
+        mixins: {
+            'Magento_ProductVideo/js/load-player': {
+                'Rollpix_ProductGallery/js/load-player-mixin': true
+            },
+            'Magento_ProductVideo/js/fotorama-add-video-events': {
+                'Rollpix_ProductGallery/js/fotorama-add-video-events-mixin': true
+            }
+        }
     }
 };

@@ -28,4 +28,10 @@
                 type="Rollpix\ProductGallery\Plugin\Catalog\Model\Product\ImagePlugin"/>
     </type>
 
+    <!-- Replace <img> with <video> on product listing pages when thumbnail is MP4 -->
+    <type name="Magento\Catalog\Block\Product\Image">
+        <plugin name="rollpix_video_listing_swap"
+                type="Rollpix\ProductGallery\Plugin\Catalog\Block\Product\ImagePlugin"/>
+    </type>
+
 </config>

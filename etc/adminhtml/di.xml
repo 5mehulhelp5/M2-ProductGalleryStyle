@@ -10,10 +10,4 @@
 <config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
         xsi:noNamespaceSchemaLocation="urn:magento:framework:ObjectManager/etc/config.xsd">
 
-    <!-- Allow MP4 video uploads in product gallery -->
-    <type name="Magento\Catalog\Controller\Adminhtml\Product\Gallery\Upload">
-        <plugin name="rollpix_allow_mp4_gallery_upload"
-                type="Rollpix\ProductGallery\Plugin\Catalog\Controller\Adminhtml\Product\Gallery\UploadPlugin"/>
-    </type>
-
 </config>

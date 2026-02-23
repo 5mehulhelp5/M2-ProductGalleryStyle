@@ -174,8 +174,9 @@ $gridImageColumns = $columnCss['gridImageColumns'] ?? 2;
             <?php else: ?>
                 <?php foreach ($images as $image): ?>
                     <?php
-                    $file = $image->getData('file') ?: '';
-                    $isVideo = $galleryConfig->isVideoEnabled() && $galleryConfig->isVideoFile($file);
+                    $isVideo = $galleryConfig->isVideoEnabled()
+                        && $image->getData('media_type') === 'external-video'
+                        && $image->getData('video_provider') === 'local';
                     $largeImageUrl = $image->getData('large_image_url') ?: $image->getData('url');
                     $mediumImageUrl = $image->getData('medium_image_url') ?: $image->getData('url');
                     $imageLabel = $image->getData('label') ?: $productName;
@@ -195,7 +196,7 @@ $gridImageColumns = $columnCss['gridImageColumns'] ?? 2;
                                 class="rp-video-element"
                                 style="object-fit: <?= $block->escapeHtmlAttr($galleryConfig->getVideoObjectFit()) ?>"
                             >
-                                <source src="<?= $block->escapeUrl($image->getData('url')) ?>" type="video/mp4"/>
+                                <source src="<?= $block->escapeUrl($image->getData('video_url') ?: $image->getData('url')) ?>" type="video/mp4"/>
                             </video>
                         </span>
                     <?php else: ?>
@@ -235,8 +236,9 @@ $gridImageColumns = $columnCss['gridImageColumns'] ?? 2;
     <div class="rp-thumbnail-strip" data-role="rp-thumbnails">
         <?php foreach ($images as $index => $image): ?>
             <?php
-            $thumbFile = $image->getData('file') ?: '';
-            $isThumbVideo = $galleryConfig->isVideoEnabled() && $galleryConfig->isVideoFile($thumbFile);
+            $isThumbVideo = $galleryConfig->isVideoEnabled()
+                && $image->getData('media_type') === 'external-video'
+                && $image->getData('video_provider') === 'local';
             $thumbUrl = $image->getData('small_image_url') ?: $image->getData('url');
             $thumbLabel = $image->getData('label') ?: $productName;
             ?>
@@ -251,7 +253,7 @@ $gridImageColumns = $columnCss['gridImageColumns'] ?? 2;
                         <svg width="20" height="20" viewBox="0 0 24 24" fill="white"><polygon points="5,3 19,12 5,21"/></svg>
                     </span>
                     <video muted preload="metadata" class="rp-thumbnail-video-preview">
-                        <source src="<?= $block->escapeUrl($image->getData('url')) ?>#t=0.5" type="video/mp4"/>
+                        <source src="<?= $block->escapeUrl($image->getData('video_url') ?: $image->getData('url')) ?>#t=0.5" type="video/mp4"/>
                     </video>
                 <?php else: ?>
                     <img src="<?= $block->escapeUrl($thumbUrl) ?>"
