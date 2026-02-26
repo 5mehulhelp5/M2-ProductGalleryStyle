@@ -180,6 +180,7 @@ $gridImageColumns = $columnCss['gridImageColumns'] ?? 2;
                     ?>
                     <a href="<?= $block->escapeUrl($largeImageUrl) ?>"
                        class="rp-gallery-item <?= $zoomType === 'lightbox' ? 'glightbox' : '' ?>"
+                       data-rp-value-id="<?= (int)$image->getData('value_id') ?>"
                        data-gallery="product-gallery"
                        <?php if ($zoomType === 'lightbox'): ?>
                        data-glightbox="title: <?= $block->escapeHtmlAttr($imageLabel) ?>"
@@ -217,6 +218,7 @@ $gridImageColumns = $columnCss['gridImageColumns'] ?? 2;
             <button class="rp-thumbnail-item<?= $index === 0 ? ' rp-thumbnail-active' : '' ?>"
                     type="button"
                     data-thumb-index="<?= (int)$index ?>"
+                    data-rp-value-id="<?= (int)$image->getData('value_id') ?>"
                     aria-label="<?= $block->escapeHtmlAttr(__('Go to image %1', $index + 1)) ?>">
                 <img src="<?= $block->escapeUrl($thumbUrl) ?>"
                      alt="<?= $block->escapeHtmlAttr($thumbLabel) ?>"
