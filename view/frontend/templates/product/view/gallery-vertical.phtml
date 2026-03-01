@@ -210,7 +210,7 @@ $gridImageColumns = $columnCss['gridImageColumns'] ?? 2;
                                 class="rp-video-element"
                                 style="object-fit: <?= $block->escapeHtmlAttr($galleryConfig->getVideoObjectFit()) ?>"
                             >
-                                <source src="<?= $block->escapeUrl($videoUrl ?: $image->getData('url')) ?>" type="video/mp4"/>
+                                <source src="<?= $block->escapeUrl($image->getData('url')) ?>" type="video/mp4"/>
                             </video>
                         </span>
                     <?php elseif ($isExternalVideo && $videoUrl): ?>
@@ -310,7 +310,7 @@ $gridImageColumns = $columnCss['gridImageColumns'] ?? 2;
                 </span>
                 <?php if ($isThumbLocalVideo): ?>
                     <video muted preload="metadata" class="rp-thumbnail-video-preview">
-                        <source src="<?= $block->escapeUrl($image->getData('video_url') ?: $image->getData('url')) ?>#t=0.5" type="video/mp4"/>
+                        <source src="<?= $block->escapeUrl($image->getData('url')) ?>#t=0.5" type="video/mp4"/>
                     </video>
                 <?php else: ?>
                     <img src="<?= $block->escapeUrl($thumbUrl) ?>"

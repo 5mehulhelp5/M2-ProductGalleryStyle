@@ -161,6 +161,15 @@ define([
                 return;
             }
 
+            // Add enablejsapi with proper origin for YouTube postMessage control
+            var provider = $item.data('video-provider') || '';
+
+            if (provider === 'youtube') {
+                var sep = embedUrl.indexOf('?') !== -1 ? '&' : '?';
+
+                embedUrl += sep + 'enablejsapi=1&origin=' + encodeURIComponent(window.location.origin);
+            }
+
             var $iframe = $('<iframe/>', {
                 src: embedUrl,
                 'class': 'rp-video-iframe',

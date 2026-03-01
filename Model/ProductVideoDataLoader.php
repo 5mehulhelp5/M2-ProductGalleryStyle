@@ -132,15 +132,18 @@ class ProductVideoDataLoader
                 $ext = strtolower(pathinfo($selected['file'], PATHINFO_EXTENSION));
                 if ($ext === 'mp4') {
                     $provider = 'local';
-                    if (empty($videoUrl)) {
-                        try {
-                            $mediaUrl = $this->storeManager->getStore()
-                                ->getBaseUrl(UrlInterface::URL_TYPE_MEDIA);
-                            $videoUrl = $mediaUrl . 'catalog/product' . $selected['file'];
-                        } catch (\Exception $e) {
-                            continue;
-                        }
-                    }
+                }
+            }
+
+            // For local MP4: always build URL from gallery file path
+            // (video_url may contain a stale tmp path from upload)
+            if ($provider === 'local' && !empty($selected['file'])) {
+                try {
+                    $mediaUrl = $this->storeManager->getStore()
+                        ->getBaseUrl(UrlInterface::URL_TYPE_MEDIA);
+                    $videoUrl = $mediaUrl . 'catalog/product' . $selected['file'];
+                } catch (\Exception $e) {
+                    continue;
                 }
             }
 

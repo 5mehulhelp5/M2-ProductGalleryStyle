@@ -158,7 +158,7 @@ class ImagePlugin
             $this->config->isListingAutoplay(),
             $this->config->isVideoMuted(),
             $this->config->isVideoLoop(),
-            false, // no native controls for external videos in listing
+            true, // enable native controls for external embedded players
             $parsed['id']
         );
 

@@ -56,12 +56,8 @@ class VideoUrlParser
             case 'youtube':
                 $defaults = [
                     'rel' => '0',
-                    'enablejsapi' => '1',
-                    'origin' => '',
                 ];
                 $merged = array_merge($defaults, $params);
-                // Remove empty values
-                $merged = array_filter($merged, fn($v) => $v !== '');
                 $query = http_build_query($merged);
                 return 'https://www.youtube.com/embed/' . urlencode($id)
                     . ($query ? '?' . $query : '');
@@ -95,7 +91,6 @@ class VideoUrlParser
                 'mute' => $muted ? '1' : '0',
                 'loop' => $loop ? '1' : '0',
                 'controls' => $controls ? '1' : '0',
-                'enablejsapi' => '1',
                 'rel' => '0',
                 'playsinline' => '1',
             ];
