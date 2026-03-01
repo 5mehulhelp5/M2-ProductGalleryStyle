@@ -175,15 +175,19 @@ $gridImageColumns = $columnCss['gridImageColumns'] ?? 2;
                 <?php foreach ($images as $image): ?>
                     <?php
                     $isVideo = $galleryConfig->isVideoEnabled()
-                        && $image->getData('media_type') === 'external-video'
-                        && $image->getData('video_provider') === 'local';
+                        && $image->getData('media_type') === 'external-video';
+                    $videoProvider = $image->getData('video_provider') ?: '';
+                    $isLocalVideo = $isVideo && $videoProvider === 'local';
+                    $isExternalVideo = $isVideo && $galleryConfig->isExternalVideo($videoProvider);
                     $largeImageUrl = $image->getData('large_image_url') ?: $image->getData('url');
                     $mediumImageUrl = $image->getData('medium_image_url') ?: $image->getData('url');
                     $imageLabel = $image->getData('label') ?: $productName;
+                    $videoUrl = $image->getData('video_url') ?: '';
                     ?>
-                    <?php if ($isVideo): ?>
+                    <?php if ($isLocalVideo): ?>
                         <span class="rp-gallery-item rp-gallery-video"
                               data-media-type="video"
+                              data-video-provider="local"
                               data-rp-value-id="<?= (int)$image->getData('value_id') ?>"
                               data-gallery="product-gallery">
                             <video
@@ -196,8 +200,41 @@ $gridImageColumns = $columnCss['gridImageColumns'] ?? 2;
                                 class="rp-video-element"
                                 style="object-fit: <?= $block->escapeHtmlAttr($galleryConfig->getVideoObjectFit()) ?>"
                             >
-                                <source src="<?= $block->escapeUrl($image->getData('video_url') ?: $image->getData('url')) ?>" type="video/mp4"/>
+                                <source src="<?= $block->escapeUrl($videoUrl ?: $image->getData('url')) ?>" type="video/mp4"/>
                             </video>
+                        </span>
+                    <?php elseif ($isExternalVideo && $videoUrl): ?>
+                        <?php
+                        $embedUrl = $galleryConfig->getVideoEmbedUrl($videoUrl, $videoProvider);
+                        $thumbnailUrl = $mediumImageUrl;
+                        $lazyLoad = $galleryConfig->isVideoLazyLoad();
+                        ?>
+                        <span class="rp-gallery-item rp-gallery-video rp-gallery-video-external"
+                              data-media-type="video"
+                              data-video-provider="<?= $block->escapeHtmlAttr($videoProvider) ?>"
+                              data-video-embed-url="<?= $block->escapeHtmlAttr($embedUrl) ?>"
+                              data-rp-value-id="<?= (int)$image->getData('value_id') ?>"
+                              data-gallery="product-gallery">
+                            <?php if ($lazyLoad): ?>
+                                <div class="rp-video-facade"
+                                     style="background-image: url('<?= $block->escapeUrl($thumbnailUrl) ?>')">
+                                    <button class="rp-video-facade-play" type="button"
+                                            aria-label="<?= $block->escapeHtmlAttr(__('Play video')) ?>">
+                                        <svg width="68" height="48" viewBox="0 0 68 48">
+                                            <path class="rp-video-facade-bg" d="M66.52,7.74c-0.78-2.93-2.49-5.41-5.42-6.19C55.79,.13,34,0,34,0S12.21,.13,6.9,1.55 C3.97,2.33,2.27,4.81,1.48,7.74C0.06,13.05,0,24,0,24s0.06,10.95,1.48,16.26c0.78,2.93,2.49,5.41,5.42,6.19 C12.21,47.87,34,48,34,48s21.79-0.13,27.1-1.55c2.93-0.78,4.64-3.26,5.42-6.19C67.94,34.95,68,24,68,24S67.94,13.05,66.52,7.74z" fill="#212121" fill-opacity="0.8"/>
+                                            <path d="M 45,24 27,14 27,34" fill="#fff"/>
+                                        </svg>
+                                    </button>
+                                </div>
+                            <?php else: ?>
+                                <iframe src="<?= $block->escapeUrl($embedUrl) ?>"
+                                        class="rp-video-iframe"
+                                        frameborder="0"
+                                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                                        allowfullscreen
+                                        loading="lazy">
+                                </iframe>
+                            <?php endif; ?>
                         </span>
                     <?php else: ?>
                         <a href="<?= $block->escapeUrl($largeImageUrl) ?>"
@@ -237,8 +274,10 @@ $gridImageColumns = $columnCss['gridImageColumns'] ?? 2;
         <?php foreach ($images as $index => $image): ?>
             <?php
             $isThumbVideo = $galleryConfig->isVideoEnabled()
-                && $image->getData('media_type') === 'external-video'
-                && $image->getData('video_provider') === 'local';
+                && $image->getData('media_type') === 'external-video';
+            $thumbVideoProvider = $image->getData('video_provider') ?: '';
+            $isThumbLocalVideo = $isThumbVideo && $thumbVideoProvider === 'local';
+            $isThumbExternalVideo = $isThumbVideo && $galleryConfig->isExternalVideo($thumbVideoProvider);
             $thumbUrl = $image->getData('small_image_url') ?: $image->getData('url');
             $thumbLabel = $image->getData('label') ?: $productName;
             ?>
@@ -248,10 +287,10 @@ $gridImageColumns = $columnCss['gridImageColumns'] ?? 2;
                     data-rp-value-id="<?= (int)$image->getData('value_id') ?>"
                     data-media-type="<?= $isThumbVideo ? 'video' : 'image' ?>"
                     aria-label="<?= $block->escapeHtmlAttr(__('Go to %1 %2', $isThumbVideo ? __('video') : __('image'), $index + 1)) ?>">
-                <?php if ($isThumbVideo): ?>
-                    <span class="rp-thumbnail-play-icon">
-                        <svg width="20" height="20" viewBox="0 0 24 24" fill="white"><polygon points="5,3 19,12 5,21"/></svg>
-                    </span>
+                <span class="rp-thumbnail-play-icon">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="white"><polygon points="5,3 19,12 5,21"/></svg>
+                </span>
+                <?php if ($isThumbLocalVideo): ?>
                     <video muted preload="metadata" class="rp-thumbnail-video-preview">
                         <source src="<?= $block->escapeUrl($image->getData('video_url') ?: $image->getData('url')) ?>#t=0.5" type="video/mp4"/>
                     </video>

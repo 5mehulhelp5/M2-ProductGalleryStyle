@@ -16,7 +16,8 @@ var config = {
             'rpGallerySlider': 'Rollpix_ProductGallery/js/gallery-slider',
             'rpGalleryModalZoom': 'Rollpix_ProductGallery/js/gallery-modal-zoom',
             'rpGalleryVideo': 'Rollpix_ProductGallery/js/gallery-video',
-            'rpGalleryListingVideo': 'Rollpix_ProductGallery/js/gallery-listing-video'
+            'rpGalleryListingVideo': 'Rollpix_ProductGallery/js/gallery-listing-video',
+            'rpGalleryListingEffects': 'Rollpix_ProductGallery/js/gallery-listing-effects'
         }
     },
     config: {

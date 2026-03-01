@@ -1626,6 +1626,57 @@
     height: auto;
 }
 
+/* External video iframe (YouTube/Vimeo) */
+.rp-video-iframe {
+    width: 100%;
+    aspect-ratio: 16 / 9;
+    border: none;
+    display: block;
+}
+
+/* Video facade (lazy-load thumbnail + play button) */
+.rp-video-facade {
+    position: relative;
+    width: 100%;
+    aspect-ratio: 16 / 9;
+    background-size: cover;
+    background-position: center;
+    background-color: #000;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.rp-video-facade-play {
+    position: relative;
+    z-index: 2;
+    border: none;
+    background: none;
+    padding: 0;
+    cursor: pointer;
+    opacity: 0.85;
+    transition: opacity 0.2s ease;
+}
+
+.rp-video-facade:hover .rp-video-facade-play {
+    opacity: 1;
+}
+
+.rp-video-facade-bg {
+    transition: fill 0.1s cubic-bezier(0, 0, 0.2, 1);
+}
+
+.rp-video-facade:hover .rp-video-facade-bg {
+    fill: #f00;
+    fill-opacity: 1;
+}
+
+/* Hide play icon for non-video thumbnails */
+.rp-thumbnail-item:not(.rp-thumbnail-video) .rp-thumbnail-play-icon {
+    display: none;
+}
+
 /* Shimmer: video loading state */
 .rp-shimmer .rp-gallery-video .rp-video-element {
     opacity: 0;

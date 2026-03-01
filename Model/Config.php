@@ -50,6 +50,9 @@ class Config
     private const XML_PATH_VIDEO_OBJECT_FIT = 'rollpix_gallery/video/object_fit';
     private const XML_PATH_VIDEO_LAZY_LOAD = 'rollpix_gallery/video/lazy_load';
     private const XML_PATH_VIDEO_LISTING_ENABLED = 'rollpix_gallery/video/listing_enabled';
+    private const XML_PATH_VIDEO_LISTING_AUTOPLAY = 'rollpix_gallery/video/listing_autoplay';
+    private const XML_PATH_VIDEO_LISTING_CONTROLS = 'rollpix_gallery/video/listing_controls';
+    private const XML_PATH_VIDEO_LISTING_OBJECT_FIT = 'rollpix_gallery/video/listing_object_fit';
     private const XML_PATH_VIDEO_MAX_SIZE = 'rollpix_gallery/video/max_size';
 
     private ScopeConfigInterface $scopeConfig;
@@ -374,6 +377,33 @@ class Config
         );
     }
 
+    public function isListingAutoplay(?int $storeId = null): bool
+    {
+        return $this->scopeConfig->isSetFlag(
+            self::XML_PATH_VIDEO_LISTING_AUTOPLAY,
+            ScopeInterface::SCOPE_STORE,
+            $storeId
+        );
+    }
+
+    public function isListingControlsEnabled(?int $storeId = null): bool
+    {
+        return $this->scopeConfig->isSetFlag(
+            self::XML_PATH_VIDEO_LISTING_CONTROLS,
+            ScopeInterface::SCOPE_STORE,
+            $storeId
+        );
+    }
+
+    public function getListingObjectFit(?int $storeId = null): string
+    {
+        return (string) $this->scopeConfig->getValue(
+            self::XML_PATH_VIDEO_LISTING_OBJECT_FIT,
+            ScopeInterface::SCOPE_STORE,
+            $storeId
+        ) ?: 'cover';
+    }
+
     public function getVideoMaxSize(?int $storeId = null): int
     {
         return (int) $this->scopeConfig->getValue(
@@ -437,7 +467,11 @@ class Config
                 'muted' => $this->isVideoMuted($storeId),
                 'controls' => $this->isVideoControlsEnabled($storeId),
                 'objectFit' => $this->getVideoObjectFit($storeId),
-                'lazyLoad' => $this->isVideoLazyLoad($storeId)
+                'lazyLoad' => $this->isVideoLazyLoad($storeId),
+                'listingEnabled' => $this->isVideoListingEnabled($storeId),
+                'listingAutoplay' => $this->isListingAutoplay($storeId),
+                'listingControls' => $this->isListingControlsEnabled($storeId),
+                'listingObjectFit' => $this->getListingObjectFit($storeId)
             ]
         ];
     }

@@ -1,0 +1,28 @@
+<?xml version="1.0"?>
+<!--
+/**
+ * Rollpix ProductGallery - Default Layout
+ *
+ * Includes listing CSS and JS globally so they work on any page
+ * with product widgets (CMS pages, homepage, etc.).
+ *
+ * @category  Rollpix
+ * @package   Rollpix_ProductGallery
+ */
+-->
+<page xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+      xsi:noNamespaceSchemaLocation="urn:magento:framework:View/Layout/etc/page_configuration.xsd">
+
+    <head>
+        <css src="Rollpix_ProductGallery::css/gallery-listing.css"/>
+    </head>
+
+    <body>
+        <referenceContainer name="before.body.end">
+            <block class="Magento\Framework\View\Element\Template"
+                   name="rollpix.listing.effects.init"
+                   template="Rollpix_ProductGallery::product/listing/effects-init.phtml"/>
+        </referenceContainer>
+    </body>
+
+</page>

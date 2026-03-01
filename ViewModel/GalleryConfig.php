@@ -13,18 +13,22 @@ namespace Rollpix\ProductGallery\ViewModel;
 use Magento\Framework\View\Element\Block\ArgumentInterface;
 use Magento\Framework\Json\EncoderInterface;
 use Rollpix\ProductGallery\Model\Config;
+use Rollpix\ProductGallery\Model\VideoUrlParser;
 
 class GalleryConfig implements ArgumentInterface
 {
     private Config $config;
     private EncoderInterface $jsonEncoder;
+    private VideoUrlParser $videoUrlParser;
 
     public function __construct(
         Config $config,
-        EncoderInterface $jsonEncoder
+        EncoderInterface $jsonEncoder,
+        VideoUrlParser $videoUrlParser
     ) {
         $this->config = $config;
         $this->jsonEncoder = $jsonEncoder;
+        $this->videoUrlParser = $videoUrlParser;
     }
 
     public function getZoomType(): string
@@ -185,6 +189,46 @@ class GalleryConfig implements ArgumentInterface
     public function getVideoMaxSize(): int
     {
         return $this->config->getVideoMaxSize();
+    }
+
+    /**
+     * Check if a provider is an external video (YouTube/Vimeo)
+     */
+    public function isExternalVideo(string $provider): bool
+    {
+        return in_array($provider, ['youtube', 'vimeo'], true);
+    }
+
+    /**
+     * Get embed URL for a YouTube/Vimeo video with config-based params.
+     */
+    public function getVideoEmbedUrl(string $videoUrl, string $provider): string
+    {
+        $parsed = $this->videoUrlParser->parse($videoUrl);
+        if (!$parsed || $parsed['provider'] === 'local') {
+            return $videoUrl;
+        }
+
+        $params = $this->videoUrlParser->buildEmbedParams(
+            $parsed['provider'],
+            $this->isVideoAutoplay(),
+            $this->isVideoMuted(),
+            $this->isVideoLoop(),
+            $this->isVideoControlsEnabled(),
+            $parsed['id']
+        );
+
+        return $this->videoUrlParser->getEmbedUrl($parsed['provider'], $parsed['id'], $params);
+    }
+
+    /**
+     * Parse a video URL and return provider/id info.
+     *
+     * @return array{provider: string, id: string}|null
+     */
+    public function parseVideoUrl(string $url): ?array
+    {
+        return $this->videoUrlParser->parse($url);
     }
 
     /**

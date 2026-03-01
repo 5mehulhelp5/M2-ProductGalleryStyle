@@ -88,4 +88,19 @@ class ListingVideoConfig implements ArgumentInterface
     {
         return $this->config->isVideoControlsEnabled();
     }
+
+    public function isListingAutoplay(): bool
+    {
+        return $this->config->isListingAutoplay();
+    }
+
+    public function isListingControlsEnabled(): bool
+    {
+        return $this->config->isListingControlsEnabled();
+    }
+
+    public function getListingObjectFit(): string
+    {
+        return $this->config->getListingObjectFit();
+    }
 }

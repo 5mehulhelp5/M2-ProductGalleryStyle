@@ -1,10 +1,9 @@
 <?xml version="1.0"?>
 <!--
 /**
- * Rollpix ProductGallery - Category Page Layout
+ * Rollpix ProductGallery - Search Results Layout
  *
- * Adds video support JS for product listing pages.
- * CSS and shimmer effects are loaded globally via default.xml.
+ * Adds video support JS for search results listing pages.
  *
  * @category  Rollpix
  * @package   Rollpix_ProductGallery
@@ -16,7 +15,7 @@
     <body>
         <referenceContainer name="content">
             <block class="Magento\Framework\View\Element\Template"
-                   name="rollpix.listing.video.init"
+                   name="rollpix.search.video.init"
                    template="Rollpix_ProductGallery::product/listing/video-init.phtml"
                    after="-"/>
         </referenceContainer>

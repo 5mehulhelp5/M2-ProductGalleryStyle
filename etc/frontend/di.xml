@@ -16,4 +16,10 @@
                 type="Rollpix\ProductGallery\Plugin\Catalog\Block\Product\ImagePlugin"/>
     </type>
 
+    <!-- Attach product reference to Image block for video detection -->
+    <type name="Magento\Catalog\Block\Product\ImageFactory">
+        <plugin name="rollpix_image_factory_product_ref"
+                type="Rollpix\ProductGallery\Plugin\Catalog\Block\Product\ImageFactoryPlugin"/>
+    </type>
+
 </config>

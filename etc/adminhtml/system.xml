@@ -96,10 +96,11 @@
                        showInWebsite="1"
                        showInStore="1">
                     <label>Enable Video Support</label>
-                    <comment>Allow MP4 videos in the product gallery</comment>
+                    <comment>Allow MP4, YouTube and Vimeo videos in the product gallery</comment>
                     <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
                 </field>
 
+                <!-- PDP Video Settings -->
                 <field id="autoplay"
                        translate="label comment"
                        type="select"
@@ -107,8 +108,8 @@
                        showInDefault="1"
                        showInWebsite="1"
                        showInStore="1">
-                    <label>Autoplay</label>
-                    <comment>Automatically play videos when they become visible in the viewport</comment>
+                    <label>PDP Autoplay</label>
+                    <comment>Automatically play videos when they become visible on the product detail page</comment>
                     <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
                     <depends>
                         <field id="enabled">1</field>
@@ -152,8 +153,8 @@
                        showInDefault="1"
                        showInWebsite="1"
                        showInStore="1">
-                    <label>Show Player Controls</label>
-                    <comment>Display the native video player controls (play, pause, volume, etc.)</comment>
+                    <label>PDP Player Controls</label>
+                    <comment>Display the native video player controls on the product detail page (play, pause, volume, etc.)</comment>
                     <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
                     <depends>
                         <field id="enabled">1</field>
@@ -167,8 +168,8 @@
                        showInDefault="1"
                        showInWebsite="1"
                        showInStore="1">
-                    <label>Video Fit Mode</label>
-                    <comment>How the video fits its container when aspect ratios differ. Cover: crops to fill. Contain: shows entire video with possible letterboxing.</comment>
+                    <label>PDP Video Fit Mode</label>
+                    <comment>How the video fits its container on the product detail page. Cover: crops to fill. Contain: shows entire video with possible letterboxing.</comment>
                     <source_model>Rollpix\ProductGallery\Model\Config\Source\VideoObjectFit</source_model>
                     <depends>
                         <field id="enabled">1</field>
@@ -205,6 +206,7 @@
                     </depends>
                 </field>
 
+                <!-- Listing Video Settings -->
                 <field id="listing_enabled"
                        translate="label comment"
                        type="select"
@@ -213,10 +215,58 @@
                        showInWebsite="1"
                        showInStore="1">
                     <label>Enable Video on Category Pages</label>
-                    <comment>Show product videos on category listing pages when the video has the thumbnail image role</comment>
+                    <comment>Show product videos on category listing pages. Detects videos from the product media gallery (prioritizes video with small_image role).</comment>
                     <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
                     <depends>
                         <field id="enabled">1</field>
+                    </depends>
+                </field>
+
+                <field id="listing_autoplay"
+                       translate="label comment"
+                       type="select"
+                       sortOrder="100"
+                       showInDefault="1"
+                       showInWebsite="1"
+                       showInStore="1">
+                    <label>Listing Autoplay</label>
+                    <comment>Automatically play videos on category listing pages when visible. Recommended only when few products have videos.</comment>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                    <depends>
+                        <field id="enabled">1</field>
+                        <field id="listing_enabled">1</field>
+                    </depends>
+                </field>
+
+                <field id="listing_controls"
+                       translate="label comment"
+                       type="select"
+                       sortOrder="110"
+                       showInDefault="1"
+                       showInWebsite="1"
+                       showInStore="1">
+                    <label>Listing Play/Stop Button</label>
+                    <comment>Show a simplified play/stop button overlay on listing page videos</comment>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                    <depends>
+                        <field id="enabled">1</field>
+                        <field id="listing_enabled">1</field>
+                    </depends>
+                </field>
+
+                <field id="listing_object_fit"
+                       translate="label comment"
+                       type="select"
+                       sortOrder="120"
+                       showInDefault="1"
+                       showInWebsite="1"
+                       showInStore="1">
+                    <label>Listing Video Fit Mode</label>
+                    <comment>How the video fits its container on category listing pages</comment>
+                    <source_model>Rollpix\ProductGallery\Model\Config\Source\VideoObjectFit</source_model>
+                    <depends>
+                        <field id="enabled">1</field>
+                        <field id="listing_enabled">1</field>
                     </depends>
                 </field>
             </group>
