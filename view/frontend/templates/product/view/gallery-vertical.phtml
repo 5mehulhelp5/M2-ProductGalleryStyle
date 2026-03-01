@@ -176,13 +176,23 @@ $gridImageColumns = $columnCss['gridImageColumns'] ?? 2;
                     <?php
                     $isVideo = $galleryConfig->isVideoEnabled()
                         && $image->getData('media_type') === 'external-video';
-                    $videoProvider = $image->getData('video_provider') ?: '';
+                    $videoProvider = $image->getData('video_provider')
+                        ?: ($image->getData('provider') ?: '');
+                    $videoUrl = $image->getData('video_url') ?: '';
+
+                    // Fallback: detect provider from video URL when not set by Magento
+                    if ($isVideo && empty($videoProvider) && !empty($videoUrl)) {
+                        $parsedVideo = $galleryConfig->parseVideoUrl($videoUrl);
+                        if ($parsedVideo) {
+                            $videoProvider = $parsedVideo['provider'];
+                        }
+                    }
+
                     $isLocalVideo = $isVideo && $videoProvider === 'local';
                     $isExternalVideo = $isVideo && $galleryConfig->isExternalVideo($videoProvider);
                     $largeImageUrl = $image->getData('large_image_url') ?: $image->getData('url');
                     $mediumImageUrl = $image->getData('medium_image_url') ?: $image->getData('url');
                     $imageLabel = $image->getData('label') ?: $productName;
-                    $videoUrl = $image->getData('video_url') ?: '';
                     ?>
                     <?php if ($isLocalVideo): ?>
                         <span class="rp-gallery-item rp-gallery-video"
@@ -275,7 +285,15 @@ $gridImageColumns = $columnCss['gridImageColumns'] ?? 2;
             <?php
             $isThumbVideo = $galleryConfig->isVideoEnabled()
                 && $image->getData('media_type') === 'external-video';
-            $thumbVideoProvider = $image->getData('video_provider') ?: '';
+            $thumbVideoProvider = $image->getData('video_provider')
+                ?: ($image->getData('provider') ?: '');
+            $thumbVideoUrl = $image->getData('video_url') ?: '';
+            if ($isThumbVideo && empty($thumbVideoProvider) && !empty($thumbVideoUrl)) {
+                $parsedThumb = $galleryConfig->parseVideoUrl($thumbVideoUrl);
+                if ($parsedThumb) {
+                    $thumbVideoProvider = $parsedThumb['provider'];
+                }
+            }
             $isThumbLocalVideo = $isThumbVideo && $thumbVideoProvider === 'local';
             $isThumbExternalVideo = $isThumbVideo && $galleryConfig->isExternalVideo($thumbVideoProvider);
             $thumbUrl = $image->getData('small_image_url') ?: $image->getData('url');

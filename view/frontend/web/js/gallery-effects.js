@@ -42,6 +42,7 @@ define([
                 var $item = $(this);
                 var $video = $item.find('video');
                 var $img = $item.find('img');
+                var $facade = $item.find('.rp-video-facade');
 
                 if ($video.length) {
                     // Video item: listen for video-specific load events
@@ -52,6 +53,9 @@ define([
                     if (video.readyState >= 2) {
                         markLoaded($item);
                     }
+                } else if ($facade.length) {
+                    // External video facade: loaded immediately (thumbnail is CSS background)
+                    markLoaded($item);
                 } else if ($img.length) {
                     var img = $img[0];
 

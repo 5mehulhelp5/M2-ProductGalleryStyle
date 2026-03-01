@@ -14,6 +14,12 @@ var config = {
             },
             'Magento_ProductVideo/js/get-video-information': {
                 'Rollpix_ProductGallery/js/get-video-information-mixin': true
+            },
+            'Magento_Backend/js/media-uploader': {
+                'Rollpix_ProductGallery/js/media-uploader-mixin': true
+            },
+            'Magento_Ui/js/form/element/image-uploader': {
+                'Rollpix_ProductGallery/js/image-uploader-mixin': true
             }
         }
     }
