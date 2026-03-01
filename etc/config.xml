@@ -37,6 +37,8 @@
             <!-- Mobile Settings -->
             <mobile>
                 <behavior>carousel</behavior>
+                <carousel_dots>1</carousel_dots>
+                <carousel_arrows>1</carousel_arrows>
             </mobile>
             <!-- Sticky Settings -->
             <sticky>

@@ -568,6 +568,36 @@
                     <comment>How images are displayed on mobile devices</comment>
                     <source_model>Rollpix\ProductGallery\Model\Config\Source\MobileBehavior</source_model>
                 </field>
+
+                <field id="carousel_dots"
+                       translate="label comment"
+                       type="select"
+                       sortOrder="20"
+                       showInDefault="1"
+                       showInWebsite="1"
+                       showInStore="1">
+                    <label>Carousel Dots</label>
+                    <comment>Show dot indicators in mobile carousel</comment>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                    <depends>
+                        <field id="behavior">carousel</field>
+                    </depends>
+                </field>
+
+                <field id="carousel_arrows"
+                       translate="label comment"
+                       type="select"
+                       sortOrder="30"
+                       showInDefault="1"
+                       showInWebsite="1"
+                       showInStore="1">
+                    <label>Carousel Arrows</label>
+                    <comment>Show prev/next arrows in mobile carousel</comment>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                    <depends>
+                        <field id="behavior">carousel</field>
+                    </depends>
+                </field>
             </group>
 
             <!-- Tabs Group -->

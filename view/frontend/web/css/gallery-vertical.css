@@ -1078,6 +1078,52 @@
     transform: scale(1.2);
 }
 
+/* Carousel Arrows */
+.rp-carousel-prev,
+.rp-carousel-next {
+    display: none;
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    z-index: 5;
+    width: 36px;
+    height: 36px;
+    border: none;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.85);
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.15);
+    cursor: pointer;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+    color: #333;
+    -webkit-tap-highlight-color: transparent;
+}
+
+.rp-carousel-active .rp-carousel-prev,
+.rp-carousel-active .rp-carousel-next {
+    display: flex;
+}
+
+.rp-carousel-prev {
+    left: 8px;
+}
+
+.rp-carousel-next {
+    right: 8px;
+}
+
+.rp-carousel-prev:active,
+.rp-carousel-next:active {
+    background: rgba(255, 255, 255, 1);
+    transform: translateY(-50%) scale(0.95);
+}
+
+.rp-carousel-arrow-hidden {
+    opacity: 0.3;
+    pointer-events: none;
+}
+
 /* Stack mode (non-carousel) on mobile */
 @media screen and (max-width: 767px) {
     .rp-mobile-stack .rp-gallery-images {

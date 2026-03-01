@@ -11,10 +11,13 @@ define([
 
     return function (config, element) {
         var $gallery = $(element);
-        var mobileBehavior = config.mobile.behavior || 'stack';
+        var mobileConfig = config.mobile || {};
+        var mobileBehavior = mobileConfig.behavior || 'stack';
+        var showDots = mobileConfig.carouselDots !== false;
+        var showArrows = mobileConfig.carouselArrows !== false;
         var mobileBreakpoint = 767;
         var isCarouselInitialized = false;
-        var $wrapper, $track, $items, $indicators;
+        var $wrapper, $track, $items, $indicators, $prevBtn, $nextBtn;
         var currentIndex = 0;
         var startX, startY, currentX, isDragging = false;
         var threshold = 50;
@@ -57,8 +60,15 @@ define([
             $items.appendTo($track);
             $wrapper.append($track);
 
-            // Create indicators
-            createIndicators();
+            // Create indicators (dots)
+            if (showDots) {
+                createIndicators();
+            }
+
+            // Create arrows
+            if (showArrows) {
+                createArrows();
+            }
 
             // Set initial state
             $items.addClass('rp-carousel-slide');
@@ -88,8 +98,9 @@ define([
             $items.appendTo($wrapper);
             $track.remove();
 
-            // Remove indicators
+            // Remove indicators and arrows
             $gallery.find('.rp-carousel-indicators').remove();
+            $gallery.find('.rp-carousel-prev, .rp-carousel-next').remove();
 
             // Remove classes and reset height
             $wrapper.removeClass('rp-carousel-wrapper').css('height', '');
@@ -115,6 +126,32 @@ define([
 
             $gallery.append($indicatorContainer);
             $indicators = $gallery.find('.rp-carousel-dot');
+        }
+
+        function createArrows() {
+            $prevBtn = $('<button class="rp-carousel-prev" type="button" aria-label="Previous">' +
+                '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" ' +
+                'stroke-width="2" stroke-linecap="round" stroke-linejoin="round">' +
+                '<polyline points="15 18 9 12 15 6"></polyline></svg></button>');
+
+            $nextBtn = $('<button class="rp-carousel-next" type="button" aria-label="Next">' +
+                '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" ' +
+                'stroke-width="2" stroke-linecap="round" stroke-linejoin="round">' +
+                '<polyline points="9 18 15 12 9 6"></polyline></svg></button>');
+
+            $prevBtn.on('click', function (e) {
+                e.preventDefault();
+                e.stopPropagation();
+                prevSlide();
+            });
+
+            $nextBtn.on('click', function (e) {
+                e.preventDefault();
+                e.stopPropagation();
+                nextSlide();
+            });
+
+            $wrapper.append($prevBtn, $nextBtn);
         }
 
         function updateCarousel() {
@@ -151,8 +188,18 @@ define([
             }
 
             // Update indicators
-            $indicators.removeClass('active');
-            $indicators.eq(currentIndex).addClass('active');
+            if ($indicators) {
+                $indicators.removeClass('active');
+                $indicators.eq(currentIndex).addClass('active');
+            }
+
+            // Update arrow visibility
+            if ($prevBtn) {
+                $prevBtn.toggleClass('rp-carousel-arrow-hidden', currentIndex === 0);
+            }
+            if ($nextBtn) {
+                $nextBtn.toggleClass('rp-carousel-arrow-hidden', currentIndex === $items.length - 1);
+            }
         }
 
         function goToSlide(index) {

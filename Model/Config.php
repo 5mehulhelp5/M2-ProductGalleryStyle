@@ -25,6 +25,8 @@ class Config
     private const XML_PATH_GRID_IMAGE_COLUMNS = 'rollpix_gallery/layout/grid_image_columns';
     private const XML_PATH_IMAGE_GAP = 'rollpix_gallery/layout/image_gap';
     private const XML_PATH_MOBILE_BEHAVIOR = 'rollpix_gallery/mobile/behavior';
+    private const XML_PATH_MOBILE_CAROUSEL_DOTS = 'rollpix_gallery/mobile/carousel_dots';
+    private const XML_PATH_MOBILE_CAROUSEL_ARROWS = 'rollpix_gallery/mobile/carousel_arrows';
     private const XML_PATH_STICKY_ENABLED = 'rollpix_gallery/sticky/enabled';
     private const XML_PATH_STICKY_MODE = 'rollpix_gallery/sticky/mode';
     private const XML_PATH_STICKY_OFFSET = 'rollpix_gallery/sticky/offset';
@@ -147,6 +149,24 @@ class Config
     {
         return (string) $this->scopeConfig->getValue(
             self::XML_PATH_MOBILE_BEHAVIOR,
+            ScopeInterface::SCOPE_STORE,
+            $storeId
+        );
+    }
+
+    public function isMobileCarouselDotsEnabled(?int $storeId = null): bool
+    {
+        return $this->scopeConfig->isSetFlag(
+            self::XML_PATH_MOBILE_CAROUSEL_DOTS,
+            ScopeInterface::SCOPE_STORE,
+            $storeId
+        );
+    }
+
+    public function isMobileCarouselArrowsEnabled(?int $storeId = null): bool
+    {
+        return $this->scopeConfig->isSetFlag(
+            self::XML_PATH_MOBILE_CAROUSEL_ARROWS,
             ScopeInterface::SCOPE_STORE,
             $storeId
         );
@@ -436,7 +456,9 @@ class Config
                 'thumbnailShape' => $this->getThumbnailShape($storeId)
             ],
             'mobile' => [
-                'behavior' => $this->getMobileBehavior($storeId)
+                'behavior' => $this->getMobileBehavior($storeId),
+                'carouselDots' => $this->isMobileCarouselDotsEnabled($storeId),
+                'carouselArrows' => $this->isMobileCarouselArrowsEnabled($storeId)
             ],
             'sticky' => [
                 'enabled' => $this->isStickyEnabled($storeId),
