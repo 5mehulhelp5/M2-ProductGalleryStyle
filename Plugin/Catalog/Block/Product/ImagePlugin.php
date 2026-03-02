@@ -57,8 +57,7 @@ class ImagePlugin
      */
     public function afterToHtml(ImageBlock $subject, string $result): string
     {
-        $videoHtml = $this->getVideoHtml($subject, $result);
-        $html = $videoHtml ?: $result;
+        $html = $this->injectVideoHtml($subject, $result);
 
         // Shimmer wrapper for all listing images
         if ($this->config->isShimmerEnabled()) {
@@ -69,7 +68,34 @@ class ImagePlugin
     }
 
     /**
-     * Attempt to render video HTML. Returns null if no video applies.
+     * Inject video into the original image HTML.
+     *
+     * For "image" player size: replaces the <img> tag inside the Magento
+     * container, preserving the container's sizing (product-image-container).
+     * For "video" player size: replaces the entire HTML with a 16:9 wrapper.
+     */
+    private function injectVideoHtml(ImageBlock $subject, string $result): string
+    {
+        $videoHtml = $this->getVideoHtml($subject, $result);
+        if ($videoHtml === null) {
+            return $result;
+        }
+
+        $playerSize = $this->config->getListingPlayerSize();
+
+        if ($playerSize === 'video') {
+            // "Video proportion" mode: standalone 16:9 wrapper replaces everything
+            return $videoHtml;
+        }
+
+        // "Image size" mode: replace <img> inside the Magento container
+        $replaced = preg_replace('/<img\b[^>]*\/?>/i', $videoHtml, $result, 1);
+
+        return $replaced ?: $videoHtml;
+    }
+
+    /**
+     * Attempt to build video HTML. Returns null if no video applies.
      */
     private function getVideoHtml(ImageBlock $subject, string $result): ?string
     {
@@ -266,10 +292,11 @@ class ImagePlugin
 
         $videoFit = $this->config->getListingVideoFit();
         $attrsStr = implode(' ', $attrs);
-        $wrapperStyle = $this->getListingWrapperStyle($subject);
+        $wrapperStyle = $this->getListingWrapperStyle();
+        $styleAttr = $wrapperStyle ? ' style="' . $wrapperStyle . '"' : '';
 
         $html = '<div class="rp-listing-video-wrapper" data-video-provider="local"'
-            . ' style="' . $wrapperStyle . '">'
+            . $styleAttr . '>'
             . '<video ' . $attrsStr
             . ' class="rp-listing-video"'
             . ' style="width:100%;height:100%;object-fit:' . htmlspecialchars($videoFit) . ';background:#000;"'
@@ -310,12 +337,13 @@ class ImagePlugin
         );
 
         $embedUrl = $this->videoUrlParser->getEmbedUrl($parsed['provider'], $parsed['id'], $params);
-        $wrapperStyle = $this->getListingWrapperStyle($subject);
+        $wrapperStyle = $this->getListingWrapperStyle();
+        $styleAttr = $wrapperStyle ? ' style="' . $wrapperStyle . '"' : '';
 
         $html = '<div class="rp-listing-video-wrapper rp-listing-video-external"'
             . ' data-video-provider="' . htmlspecialchars($provider) . '"'
             . ' data-embed-url="' . htmlspecialchars($embedUrl) . '"'
-            . ' style="' . $wrapperStyle . '">';
+            . $styleAttr . '>';
 
         if (!empty($thumbnailUrl)) {
             $html .= '<div class="rp-listing-video-facade"'
@@ -364,10 +392,10 @@ class ImagePlugin
 
     /**
      * Build inline style for the listing video wrapper.
-     * "image" = constrained to product image pixel dimensions.
-     * "video" = 16:9 filling available width.
+     * "image" mode: no inline sizing (Magento container handles it via CSS).
+     * "video" mode: 16:9 filling available width.
      */
-    private function getListingWrapperStyle(ImageBlock $subject): string
+    private function getListingWrapperStyle(): string
     {
         $playerSize = $this->config->getListingPlayerSize();
 
@@ -375,15 +403,9 @@ class ImagePlugin
             return 'aspect-ratio:16/9;width:100%;';
         }
 
-        // Default: match image block pixel dimensions exactly
-        $width = (int)($subject->getWidth() ?: 0);
-        $height = (int)($subject->getHeight() ?: 0);
-
-        if ($width && $height) {
-            return 'width:' . $width . 'px;height:' . $height . 'px;max-width:100%;margin:0 auto;';
-        }
-
-        return 'aspect-ratio:1/1;width:100%;';
+        // "image" mode: CSS .product-image-container .rp-listing-video-wrapper
+        // handles position:absolute + width/height:100%
+        return '';
     }
 
     /**
