@@ -244,7 +244,7 @@ $gridImageColumns = $columnCss['gridImageColumns'] ?? 2;
                               data-video-embed-url="<?= $block->escapeHtmlAttr($embedUrl) ?>"
                               data-rp-value-id="<?= (int)$image->getData('value_id') ?>"
                               data-gallery="product-gallery"
-                              style="aspect-ratio:<?= $block->escapeHtmlAttr($galleryConfig->getPdpVideoAspectRatio($product)) ?>">
+                              style="aspect-ratio:16/9">
                             <?php if ($lazyLoad): ?>
                                 <div class="rp-video-facade"
                                      style="background-image: url('<?= $block->escapeUrl($thumbnailUrl) ?>')">
