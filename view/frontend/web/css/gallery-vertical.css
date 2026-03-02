@@ -996,7 +996,7 @@
     }
 
     /* Carousel: overlay indicators on image */
-    .rp-carousel-active .rp-carousel-indicators {
+    .rp-carousel-wrapper .rp-carousel-indicators {
         display: flex !important;
         position: absolute;
         bottom: 15px;
@@ -1651,11 +1651,12 @@
     cursor: default;
 }
 
-/* Video element */
-.rp-video-element {
+/* Video element: aspect-ratio container for object-fit support */
+.rp-gallery-video .rp-video-element {
     width: 100%;
-    height: auto;
+    aspect-ratio: 16 / 9;
     display: block;
+    background: #000;
 }
 
 /* Disable zoom-related cursors on video items */

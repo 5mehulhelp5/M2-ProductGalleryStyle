@@ -99,8 +99,8 @@ define([
             $track.remove();
 
             // Remove indicators and arrows
-            $gallery.find('.rp-carousel-indicators').remove();
-            $gallery.find('.rp-carousel-prev, .rp-carousel-next').remove();
+            $wrapper.find('.rp-carousel-indicators').remove();
+            $wrapper.find('.rp-carousel-prev, .rp-carousel-next').remove();
 
             // Remove classes and reset height
             $wrapper.removeClass('rp-carousel-wrapper').css('height', '');
@@ -124,8 +124,8 @@ define([
                 $indicatorContainer.append($dot);
             });
 
-            $gallery.append($indicatorContainer);
-            $indicators = $gallery.find('.rp-carousel-dot');
+            $wrapper.append($indicatorContainer);
+            $indicators = $wrapper.find('.rp-carousel-dot');
         }
 
         function createArrows() {

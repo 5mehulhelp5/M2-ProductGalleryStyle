@@ -240,7 +240,8 @@ $gridImageColumns = $columnCss['gridImageColumns'] ?? 2;
                                 <iframe src="<?= $block->escapeUrl($embedUrl) ?>"
                                         class="rp-video-iframe"
                                         frameborder="0"
-                                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                                        referrerpolicy="strict-origin-when-cross-origin"
                                         allowfullscreen
                                         loading="lazy">
                                 </iframe>

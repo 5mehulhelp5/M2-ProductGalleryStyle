@@ -123,7 +123,7 @@ class ImagePlugin
         $html = '<div class="rp-listing-video-wrapper" data-video-provider="local">'
             . '<video ' . $attrsStr
             . ' class="rp-listing-video"'
-            . ' style="width:100%;height:auto;object-fit:' . htmlspecialchars($objectFit) . ';"'
+            . ' style="width:100%;aspect-ratio:16/9;object-fit:' . htmlspecialchars($objectFit) . ';background:#000;"'
             . ($width ? ' width="' . (int)$width . '"' : '')
             . ($height ? ' height="' . (int)$height . '"' : '')
             . '>'
@@ -185,7 +185,8 @@ class ImagePlugin
             $html .= '<iframe src="' . htmlspecialchars($embedUrl) . '"'
                 . ' class="rp-listing-video-iframe"'
                 . ' frameborder="0"'
-                . ' allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"'
+                . ' allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"'
+                . ' referrerpolicy="strict-origin-when-cross-origin"'
                 . ' allowfullscreen'
                 . ' loading="lazy">'
                 . '</iframe>';

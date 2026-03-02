@@ -59,7 +59,7 @@ class VideoUrlParser
                 ];
                 $merged = array_merge($defaults, $params);
                 $query = http_build_query($merged);
-                return 'https://www.youtube.com/embed/' . urlencode($id)
+                return 'https://www.youtube-nocookie.com/embed/' . urlencode($id)
                     . ($query ? '?' . $query : '');
 
             case 'vimeo':
