@@ -99,8 +99,13 @@ class ListingVideoConfig implements ArgumentInterface
         return $this->config->isListingControlsEnabled();
     }
 
-    public function getListingObjectFit(): string
+    public function getListingPlayerSize(): string
     {
-        return $this->config->getListingObjectFit();
+        return $this->config->getListingPlayerSize();
+    }
+
+    public function getListingVideoFit(): string
+    {
+        return $this->config->getListingVideoFit();
     }
 }

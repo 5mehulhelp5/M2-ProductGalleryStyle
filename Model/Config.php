@@ -54,7 +54,8 @@ class Config
     private const XML_PATH_VIDEO_LISTING_ENABLED = 'rollpix_gallery/video/listing_enabled';
     private const XML_PATH_VIDEO_LISTING_AUTOPLAY = 'rollpix_gallery/video/listing_autoplay';
     private const XML_PATH_VIDEO_LISTING_CONTROLS = 'rollpix_gallery/video/listing_controls';
-    private const XML_PATH_VIDEO_LISTING_OBJECT_FIT = 'rollpix_gallery/video/listing_object_fit';
+    private const XML_PATH_VIDEO_LISTING_PLAYER_SIZE = 'rollpix_gallery/video/listing_player_size';
+    private const XML_PATH_VIDEO_LISTING_VIDEO_FIT = 'rollpix_gallery/video/listing_video_fit';
     private const XML_PATH_VIDEO_MAX_SIZE = 'rollpix_gallery/video/max_size';
 
     private ScopeConfigInterface $scopeConfig;
@@ -415,10 +416,19 @@ class Config
         );
     }
 
-    public function getListingObjectFit(?int $storeId = null): string
+    public function getListingPlayerSize(?int $storeId = null): string
     {
         return (string) $this->scopeConfig->getValue(
-            self::XML_PATH_VIDEO_LISTING_OBJECT_FIT,
+            self::XML_PATH_VIDEO_LISTING_PLAYER_SIZE,
+            ScopeInterface::SCOPE_STORE,
+            $storeId
+        ) ?: 'image';
+    }
+
+    public function getListingVideoFit(?int $storeId = null): string
+    {
+        return (string) $this->scopeConfig->getValue(
+            self::XML_PATH_VIDEO_LISTING_VIDEO_FIT,
             ScopeInterface::SCOPE_STORE,
             $storeId
         ) ?: 'cover';
@@ -493,7 +503,8 @@ class Config
                 'listingEnabled' => $this->isVideoListingEnabled($storeId),
                 'listingAutoplay' => $this->isListingAutoplay($storeId),
                 'listingControls' => $this->isListingControlsEnabled($storeId),
-                'listingObjectFit' => $this->getListingObjectFit($storeId)
+                'listingPlayerSize' => $this->getListingPlayerSize($storeId),
+                'listingVideoFit' => $this->getListingVideoFit($storeId)
             ]
         ];
     }

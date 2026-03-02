@@ -254,15 +254,31 @@
                     </depends>
                 </field>
 
-                <field id="listing_object_fit"
+                <field id="listing_player_size"
                        translate="label comment"
                        type="select"
                        sortOrder="120"
                        showInDefault="1"
                        showInWebsite="1"
                        showInStore="1">
-                    <label>Listing Video Fit Mode</label>
-                    <comment>How the video fits its container on category listing pages</comment>
+                    <label>Listing Player Size</label>
+                    <comment>Whether the video player matches the image dimensions of other products or uses the video's native 16:9 proportion</comment>
+                    <source_model>Rollpix\ProductGallery\Model\Config\Source\ListingPlayerSize</source_model>
+                    <depends>
+                        <field id="enabled">1</field>
+                        <field id="listing_enabled">1</field>
+                    </depends>
+                </field>
+
+                <field id="listing_video_fit"
+                       translate="label comment"
+                       type="select"
+                       sortOrder="130"
+                       showInDefault="1"
+                       showInWebsite="1"
+                       showInStore="1">
+                    <label>Listing Video Fit</label>
+                    <comment>Show the complete video (with letterbox if needed) or crop from center to fill the player</comment>
                     <source_model>Rollpix\ProductGallery\Model\Config\Source\VideoObjectFit</source_model>
                     <depends>
                         <field id="enabled">1</field>

@@ -264,19 +264,15 @@ class ImagePlugin
         $attrs[] = 'playsinline';
         $attrs[] = 'preload="metadata"';
 
-        $objectFit = $this->config->getListingObjectFit();
+        $videoFit = $this->config->getListingVideoFit();
         $attrsStr = implode(' ', $attrs);
-        $width = (int)($subject->getWidth() ?: 0);
-        $height = (int)($subject->getHeight() ?: 0);
-        $aspectRatio = ($width && $height) ? $width . '/' . $height : '1/1';
+        $aspectRatio = $this->getListingAspectRatio($subject);
 
         $html = '<div class="rp-listing-video-wrapper" data-video-provider="local"'
             . ' style="aspect-ratio:' . $aspectRatio . ';">'
             . '<video ' . $attrsStr
             . ' class="rp-listing-video"'
-            . ' style="width:100%;height:100%;object-fit:' . htmlspecialchars($objectFit) . ';background:#000;"'
-            . ($width ? ' width="' . $width . '"' : '')
-            . ($height ? ' height="' . $height . '"' : '')
+            . ' style="width:100%;height:100%;object-fit:' . htmlspecialchars($videoFit) . ';background:#000;"'
             . '>'
             . '<source src="' . htmlspecialchars($videoUrl) . '" type="video/mp4"/>'
             . '</video>';
@@ -314,9 +310,7 @@ class ImagePlugin
         );
 
         $embedUrl = $this->videoUrlParser->getEmbedUrl($parsed['provider'], $parsed['id'], $params);
-        $width = (int)($subject->getWidth() ?: 0);
-        $height = (int)($subject->getHeight() ?: 0);
-        $aspectRatio = ($width && $height) ? $width . '/' . $height : '1/1';
+        $aspectRatio = $this->getListingAspectRatio($subject);
 
         $html = '<div class="rp-listing-video-wrapper rp-listing-video-external"'
             . ' data-video-provider="' . htmlspecialchars($provider) . '"'
@@ -366,6 +360,25 @@ class ImagePlugin
             . '<rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/>'
             . '</svg>'
             . '</button>';
+    }
+
+    /**
+     * Determine the aspect-ratio for the listing video wrapper.
+     * "image" = match the product image dimensions, "video" = 16:9.
+     */
+    private function getListingAspectRatio(ImageBlock $subject): string
+    {
+        $playerSize = $this->config->getListingPlayerSize();
+
+        if ($playerSize === 'video') {
+            return '16/9';
+        }
+
+        // Default: match image block dimensions
+        $width = (int)($subject->getWidth() ?: 0);
+        $height = (int)($subject->getHeight() ?: 0);
+
+        return ($width && $height) ? $width . '/' . $height : '1/1';
     }
 
     /**
