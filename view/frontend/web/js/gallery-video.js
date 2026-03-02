@@ -90,12 +90,19 @@ define([
             }
 
             if (video.preload === 'none') {
-                video.preload = 'metadata';
+                video.preload = 'auto';
                 video.load();
             }
 
             if (videoConfig.autoplay && !prefersReducedMotion()) {
-                video.play().catch(function () {});
+                // Wait for enough data to play, then start
+                if (video.readyState >= 3) {
+                    video.play().catch(function () {});
+                } else {
+                    $(video).one('canplay', function () {
+                        video.play().catch(function () {});
+                    });
+                }
             }
         }
 

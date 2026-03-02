@@ -58,8 +58,14 @@ class VideoUrlParser
                     'rel' => '0',
                 ];
                 $merged = array_merge($defaults, $params);
+                // Remove default-value params that can trigger issues
+                foreach (['autoplay' => '0', 'mute' => '0', 'loop' => '0'] as $key => $defaultVal) {
+                    if (isset($merged[$key]) && $merged[$key] === $defaultVal) {
+                        unset($merged[$key]);
+                    }
+                }
                 $query = http_build_query($merged);
-                return 'https://www.youtube-nocookie.com/embed/' . urlencode($id)
+                return 'https://www.youtube.com/embed/' . urlencode($id)
                     . ($query ? '?' . $query : '');
 
             case 'vimeo':

@@ -22,10 +22,16 @@
                 type="Rollpix\ProductGallery\Plugin\Catalog\Product\Media\ConfigPlugin"/>
     </type>
 
-    <!-- Bypass image resize/cache for MP4 video files -->
+    <!-- Bypass image resize/cache for MP4 video files (old image processing path) -->
     <type name="Magento\Catalog\Model\Product\Image">
         <plugin name="rollpix_video_image_bypass"
                 type="Rollpix\ProductGallery\Plugin\Catalog\Model\Product\ImagePlugin"/>
+    </type>
+
+    <!-- Bypass UrlBuilder cache for MP4 video files (new image URL path) -->
+    <type name="Magento\Catalog\Model\Product\Image\UrlBuilder">
+        <plugin name="rollpix_video_urlbuilder_bypass"
+                type="Rollpix\ProductGallery\Plugin\Catalog\Model\Product\Image\UrlBuilderPlugin"/>
     </type>
 
 </config>

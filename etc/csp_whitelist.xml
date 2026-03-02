@@ -1,0 +1,30 @@
+<?xml version="1.0"?>
+<!--
+/**
+ * Rollpix ProductGallery - Content Security Policy Whitelist
+ *
+ * Whitelists YouTube and Vimeo domains for iframe embedding.
+ *
+ * @category  Rollpix
+ * @package   Rollpix_ProductGallery
+ */
+-->
+<csp_whitelist xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+               xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Csp/etc/csp_whitelist.xsd">
+    <policies>
+        <policy id="frame-src">
+            <values>
+                <value id="rollpix-youtube" type="host">https://www.youtube.com</value>
+                <value id="rollpix-youtube-nocookie" type="host">https://www.youtube-nocookie.com</value>
+                <value id="rollpix-vimeo" type="host">https://player.vimeo.com</value>
+            </values>
+        </policy>
+        <policy id="child-src">
+            <values>
+                <value id="rollpix-youtube" type="host">https://www.youtube.com</value>
+                <value id="rollpix-youtube-nocookie" type="host">https://www.youtube-nocookie.com</value>
+                <value id="rollpix-vimeo" type="host">https://player.vimeo.com</value>
+            </values>
+        </policy>
+    </policies>
+</csp_whitelist>
