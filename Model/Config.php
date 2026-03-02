@@ -49,6 +49,7 @@ class Config
     private const XML_PATH_VIDEO_LOOP = 'rollpix_gallery/video/loop';
     private const XML_PATH_VIDEO_MUTED = 'rollpix_gallery/video/muted';
     private const XML_PATH_VIDEO_CONTROLS = 'rollpix_gallery/video/controls';
+    private const XML_PATH_VIDEO_PLAYER_SIZE = 'rollpix_gallery/video/player_size';
     private const XML_PATH_VIDEO_OBJECT_FIT = 'rollpix_gallery/video/object_fit';
     private const XML_PATH_VIDEO_LAZY_LOAD = 'rollpix_gallery/video/lazy_load';
     private const XML_PATH_VIDEO_LISTING_ENABLED = 'rollpix_gallery/video/listing_enabled';
@@ -371,6 +372,15 @@ class Config
         );
     }
 
+    public function getVideoPdpPlayerSize(?int $storeId = null): string
+    {
+        return (string) $this->scopeConfig->getValue(
+            self::XML_PATH_VIDEO_PLAYER_SIZE,
+            ScopeInterface::SCOPE_STORE,
+            $storeId
+        ) ?: 'video';
+    }
+
     public function getVideoObjectFit(?int $storeId = null): string
     {
         return (string) $this->scopeConfig->getValue(
@@ -498,6 +508,7 @@ class Config
                 'loop' => $this->isVideoLoop($storeId),
                 'muted' => $this->isVideoMuted($storeId),
                 'controls' => $this->isVideoControlsEnabled($storeId),
+                'pdpPlayerSize' => $this->getVideoPdpPlayerSize($storeId),
                 'objectFit' => $this->getVideoObjectFit($storeId),
                 'lazyLoad' => $this->isVideoLazyLoad($storeId),
                 'listingEnabled' => $this->isVideoListingEnabled($storeId),

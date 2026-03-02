@@ -17,7 +17,7 @@ class ListingPlayerSize implements OptionSourceInterface
     public function toOptionArray(): array
     {
         return [
-            ['value' => 'image', 'label' => __('Match image size (same as other products)')],
+            ['value' => 'image', 'label' => __('Match image size')],
             ['value' => 'video', 'label' => __('Video proportion (16:9)')]
         ];
     }

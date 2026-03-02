@@ -10,6 +10,9 @@ declare(strict_types=1);
 
 namespace Rollpix\ProductGallery\ViewModel;
 
+use Magento\Catalog\Model\Product;
+use Magento\Framework\App\Filesystem\DirectoryList as FsDir;
+use Magento\Framework\Filesystem;
 use Magento\Framework\View\Element\Block\ArgumentInterface;
 use Magento\Framework\Json\EncoderInterface;
 use Rollpix\ProductGallery\Model\Config;
@@ -20,15 +23,22 @@ class GalleryConfig implements ArgumentInterface
     private Config $config;
     private EncoderInterface $jsonEncoder;
     private VideoUrlParser $videoUrlParser;
+    private Filesystem $filesystem;
+
+    /** @var array<string, string> */
+    private static array $imageAspectCache = [];
 
     public function __construct(
         Config $config,
         EncoderInterface $jsonEncoder,
-        VideoUrlParser $videoUrlParser
+        VideoUrlParser $videoUrlParser,
+        ?Filesystem $filesystem = null
     ) {
         $this->config = $config;
         $this->jsonEncoder = $jsonEncoder;
         $this->videoUrlParser = $videoUrlParser;
+        $this->filesystem = $filesystem
+            ?: \Magento\Framework\App\ObjectManager::getInstance()->get(Filesystem::class);
     }
 
     public function getZoomType(): string
@@ -174,6 +184,48 @@ class GalleryConfig implements ArgumentInterface
     public function getVideoObjectFit(): string
     {
         return $this->config->getVideoObjectFit();
+    }
+
+    public function getVideoPdpPlayerSize(): string
+    {
+        return $this->config->getVideoPdpPlayerSize();
+    }
+
+    /**
+     * Returns the CSS aspect-ratio value for the PDP video container.
+     * "video" mode: fixed 16/9.
+     * "image" mode: reads the base product image dimensions from disk.
+     */
+    public function getPdpVideoAspectRatio(Product $product): string
+    {
+        if ($this->config->getVideoPdpPlayerSize() !== 'image') {
+            return '16/9';
+        }
+
+        $baseImageFile = $product->getData('image');
+        if (!$baseImageFile || $baseImageFile === 'no_selection') {
+            return '1/1';
+        }
+
+        if (isset(self::$imageAspectCache[$baseImageFile])) {
+            return self::$imageAspectCache[$baseImageFile];
+        }
+
+        try {
+            $mediaDir = $this->filesystem->getDirectoryRead(FsDir::MEDIA);
+            $filePath = $mediaDir->getAbsolutePath('catalog/product' . $baseImageFile);
+            $size = @getimagesize($filePath);
+            if ($size && $size[0] > 0 && $size[1] > 0) {
+                $ar = $size[0] . '/' . $size[1];
+                self::$imageAspectCache[$baseImageFile] = $ar;
+                return $ar;
+            }
+        } catch (\Exception $e) {
+            // Ignore — fall through to default
+        }
+
+        self::$imageAspectCache[$baseImageFile] = '1/1';
+        return '1/1';
     }
 
     public function isVideoLazyLoad(): bool

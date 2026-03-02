@@ -1653,10 +1653,10 @@
     cursor: default;
 }
 
-/* Video element: aspect-ratio container for object-fit support */
+/* Video element fills container — aspect-ratio is set inline on .rp-gallery-video */
 .rp-gallery-video .rp-video-element {
     width: 100%;
-    aspect-ratio: 16 / 9;
+    height: 100%;
     display: block;
     background: #000;
 }
@@ -1672,13 +1672,13 @@
 /* Slider layout: video fills container */
 .rp-layout-slider .rp-gallery-video .rp-video-element {
     width: 100%;
-    height: auto;
+    height: 100%;
 }
 
 /* External video iframe (YouTube/Vimeo) */
 .rp-video-iframe {
     width: 100%;
-    aspect-ratio: 16 / 9;
+    height: 100%;
     border: none;
     display: block;
 }
@@ -1687,7 +1687,7 @@
 .rp-video-facade {
     position: relative;
     width: 100%;
-    aspect-ratio: 16 / 9;
+    height: 100%;
     background-size: cover;
     background-position: center;
     background-color: #000;

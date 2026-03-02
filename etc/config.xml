@@ -60,6 +60,7 @@
                 <loop>1</loop>
                 <muted>1</muted>
                 <controls>0</controls>
+                <player_size>video</player_size>
                 <object_fit>cover</object_fit>
                 <lazy_load>1</lazy_load>
                 <max_size>20</max_size>

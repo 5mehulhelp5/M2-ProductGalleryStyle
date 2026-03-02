@@ -217,7 +217,8 @@ $gridImageColumns = $columnCss['gridImageColumns'] ?? 2;
                               data-media-type="video"
                               data-video-provider="local"
                               data-rp-value-id="<?= (int)$image->getData('value_id') ?>"
-                              data-gallery="product-gallery">
+                              data-gallery="product-gallery"
+                              style="aspect-ratio:<?= $block->escapeHtmlAttr($galleryConfig->getPdpVideoAspectRatio($product)) ?>">
                             <video
                                 <?php if ($galleryConfig->isVideoAutoplay()): ?>autoplay<?php endif; ?>
                                 <?php if ($galleryConfig->isVideoLoop()): ?>loop<?php endif; ?>
@@ -242,7 +243,8 @@ $gridImageColumns = $columnCss['gridImageColumns'] ?? 2;
                               data-video-provider="<?= $block->escapeHtmlAttr($videoProvider) ?>"
                               data-video-embed-url="<?= $block->escapeHtmlAttr($embedUrl) ?>"
                               data-rp-value-id="<?= (int)$image->getData('value_id') ?>"
-                              data-gallery="product-gallery">
+                              data-gallery="product-gallery"
+                              style="aspect-ratio:<?= $block->escapeHtmlAttr($galleryConfig->getPdpVideoAspectRatio($product)) ?>">
                             <?php if ($lazyLoad): ?>
                                 <div class="rp-video-facade"
                                      style="background-image: url('<?= $block->escapeUrl($thumbnailUrl) ?>')">

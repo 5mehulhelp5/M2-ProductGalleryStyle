@@ -161,6 +161,21 @@
                     </depends>
                 </field>
 
+                <field id="player_size"
+                       translate="label comment"
+                       type="select"
+                       sortOrder="55"
+                       showInDefault="1"
+                       showInWebsite="1"
+                       showInStore="1">
+                    <label>PDP Player Size</label>
+                    <comment>Whether the video player uses the video's native 16:9 proportion or matches the aspect ratio of the product images</comment>
+                    <source_model>Rollpix\ProductGallery\Model\Config\Source\ListingPlayerSize</source_model>
+                    <depends>
+                        <field id="enabled">1</field>
+                    </depends>
+                </field>
+
                 <field id="object_fit"
                        translate="label comment"
                        type="select"
