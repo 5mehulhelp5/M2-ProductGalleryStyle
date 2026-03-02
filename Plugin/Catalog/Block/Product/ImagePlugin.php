@@ -60,6 +60,12 @@ class ImagePlugin
         $videoHtml = $this->getVideoHtml($subject, $result);
         $html = $videoHtml ?: $result;
 
+        // Append debug comment if collected (RP_DEBUG)
+        $debugData = $subject->getData('_rp_debug');
+        if ($debugData) {
+            $html = '<!-- RP_DEBUG ' . implode(' | ', $debugData) . ' -->' . $html;
+        }
+
         // Shimmer wrapper for all listing images
         if ($this->config->isShimmerEnabled()) {
             $html = '<div class="rp-listing-shimmer">' . $html . '</div>';
@@ -69,16 +75,31 @@ class ImagePlugin
     }
 
     /**
+     * Store debug info on subject for later output. @todo Remove before release
+     */
+    private function appendDebugComment(ImageBlock $subject, array $debug): void
+    {
+        $subject->setData('_rp_debug', $debug);
+    }
+
+    /**
      * Attempt to render video HTML. Returns null if no video applies.
+     * @todo Remove RP_DEBUG comments before release
      */
     private function getVideoHtml(ImageBlock $subject, string $result): ?string
     {
+        $debug = []; // RP_DEBUG
+
         if (!$this->config->isVideoEnabled() || !$this->config->isVideoListingEnabled()) {
+            $debug[] = 'SKIP: video or listing not enabled';
+            $this->appendDebugComment($subject, $debug); // RP_DEBUG
             return null;
         }
+        $debug[] = 'video+listing enabled';
 
         // 1. Check if the image URL itself is an MP4
         $imagePath = $subject->getData('image_url') ?: '';
+        $debug[] = 'image_url=' . $imagePath;
         if ($this->isVideoUrl($imagePath)) {
             $cleanUrl = $this->sanitizeVideoUrl($imagePath);
             return $this->buildLocalVideoHtml($cleanUrl, $subject);
@@ -93,25 +114,33 @@ class ImagePlugin
         // 2. Try pre-loaded video data from observer (fast path)
         $videoData = null;
         $product = $subject->getData('rp_product');
+        $debug[] = 'rp_product=' . ($product ? 'yes(id=' . $product->getId() . ')' : 'NULL');
         if ($product) {
             $videoData = $product->getData('rp_listing_video');
+            $debug[] = 'rp_listing_video=' . ($videoData ? json_encode($videoData) : 'NULL');
         }
 
         // 3. Fallback: load video data directly from DB using product_id
         if (!$videoData || !is_array($videoData)) {
             $productId = (int)($subject->getData('product_id') ?: 0);
+            $debug[] = 'product_id=' . $productId;
             if ($productId) {
-                $videoData = $this->loadVideoDataDirect($productId);
+                $videoData = $this->loadVideoDataDirect($productId, $debug);
+            } else {
+                $debug[] = 'SKIP: no product_id';
             }
         }
 
         if (!$videoData || !is_array($videoData)) {
+            $debug[] = 'RESULT: no video data found';
+            $this->appendDebugComment($subject, $debug); // RP_DEBUG
             return null;
         }
 
         $provider = $videoData['provider'] ?? '';
         $videoUrl = $videoData['video_url'] ?? '';
         $thumbnail = $videoData['thumbnail'] ?? '';
+        $debug[] = 'FOUND: provider=' . $provider . ' url=' . $videoUrl;
 
         if (empty($videoUrl) || empty($provider)) {
             return null;
@@ -130,9 +159,10 @@ class ImagePlugin
      * Self-contained query — does NOT depend on ProductVideoDataLoader or Observer.
      * Uses static cache to avoid duplicate queries within the same request.
      */
-    private function loadVideoDataDirect(int $productId): ?array
+    private function loadVideoDataDirect(int $productId, array &$debug = []): ?array
     {
         if (array_key_exists($productId, self::$videoDataCache)) {
+            $debug[] = 'DB:cached';
             return self::$videoDataCache[$productId];
         }
 
@@ -141,6 +171,7 @@ class ImagePlugin
         } catch (\Exception $e) {
             $storeId = 0;
         }
+        $debug[] = 'DB:storeId=' . $storeId;
 
         try {
             $connection = $this->resourceConnection->getConnection();
@@ -183,7 +214,10 @@ class ImagePlugin
                 ->order('mgv.position ASC')
                 ->limit(1);
 
+            $debug[] = 'SQL=' . (string)$select;
+
             $row = $connection->fetchRow($select);
+            $debug[] = 'DB:row=' . ($row ? json_encode($row) : 'EMPTY');
 
             if (!$row) {
                 self::$videoDataCache[$productId] = null;
@@ -231,6 +265,7 @@ class ImagePlugin
             self::$videoDataCache[$productId] = $data;
             return $data;
         } catch (\Exception $e) {
+            $debug[] = 'DB:EXCEPTION=' . $e->getMessage();
             self::$videoDataCache[$productId] = null;
             return null;
         }
