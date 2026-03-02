@@ -15,6 +15,8 @@ declare(strict_types=1);
 namespace Rollpix\ProductGallery\Plugin\Catalog\Block\Product;
 
 use Magento\Catalog\Block\Product\Image as ImageBlock;
+use Magento\Store\Model\StoreManagerInterface;
+use Magento\Framework\UrlInterface;
 use Rollpix\ProductGallery\Model\Config;
 use Rollpix\ProductGallery\Model\VideoUrlParser;
 
@@ -22,13 +24,16 @@ class ImagePlugin
 {
     private Config $config;
     private VideoUrlParser $videoUrlParser;
+    private StoreManagerInterface $storeManager;
 
     public function __construct(
         Config $config,
-        VideoUrlParser $videoUrlParser
+        VideoUrlParser $videoUrlParser,
+        StoreManagerInterface $storeManager
     ) {
         $this->config = $config;
         $this->videoUrlParser = $videoUrlParser;
+        $this->storeManager = $storeManager;
     }
 
     /**
@@ -60,12 +65,15 @@ class ImagePlugin
         // 1. Check if the image URL itself is an MP4 (existing behavior)
         $imagePath = $subject->getData('image_url') ?: '';
         if ($this->isVideoUrl($imagePath)) {
-            return $this->buildLocalVideoHtml($imagePath, $subject);
+            // Strip cache path from URL — MP4 files should never use cached URLs
+            $cleanUrl = $this->sanitizeVideoUrl($imagePath);
+            return $this->buildLocalVideoHtml($cleanUrl, $subject);
         }
 
         // Fallback: check if the rendered HTML contains a video file reference
         if (preg_match('/\.mp4["\'\s?#]/', $result)) {
-            return $this->buildLocalVideoHtml($imagePath, $subject);
+            $cleanUrl = $this->sanitizeVideoUrl($imagePath);
+            return $this->buildLocalVideoHtml($cleanUrl, $subject);
         }
 
         // 2. Check pre-loaded video data from the observer (YouTube/Vimeo/MP4 from gallery)
@@ -174,9 +182,9 @@ class ImagePlugin
             $html .= '<div class="rp-listing-video-facade"'
                 . ' style="background-image: url(\'' . htmlspecialchars($thumbnailUrl) . '\')">'
                 . '<button class="rp-listing-play-btn" type="button" aria-label="Play video">'
-                . '<svg width="48" height="34" viewBox="0 0 68 48">'
-                . '<path d="M66.52,7.74c-0.78-2.93-2.49-5.41-5.42-6.19C55.79,.13,34,0,34,0S12.21,.13,6.9,1.55 C3.97,2.33,2.27,4.81,1.48,7.74C0.06,13.05,0,24,0,24s0.06,10.95,1.48,16.26c0.78,2.93,2.49,5.41,5.42,6.19 C12.21,47.87,34,48,34,48s21.79-0.13,27.1-1.55c2.93-0.78,4.64-3.26,5.42-6.19C67.94,34.95,68,24,68,24S67.94,13.05,66.52,7.74z" fill="#212121" fill-opacity="0.8"/>'
-                . '<path d="M 45,24 27,14 27,34" fill="#fff"/>'
+                . '<svg width="48" height="48" viewBox="0 0 48 48">'
+                . '<circle cx="24" cy="24" r="22" fill="rgba(0,0,0,0.65)"/>'
+                . '<polygon points="19,14 19,34 37,24" fill="#fff"/>'
                 . '</svg>'
                 . '</button>'
                 . '</div>';
@@ -214,6 +222,27 @@ class ImagePlugin
             . '<rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/>'
             . '</svg>'
             . '</button>';
+    }
+
+    /**
+     * Strip Magento image cache path from MP4 URLs.
+     * Cache URLs look like: /media/catalog/product/cache/{hash}/{file}
+     * We need raw: /media/catalog/product/{file}
+     */
+    private function sanitizeVideoUrl(string $url): string
+    {
+        // Strip cache segment: /cache/[hash]/ → /
+        $sanitized = preg_replace('#/cache/[a-f0-9]+/#i', '/', $url);
+
+        // Strip resize query params (width, height, store, image-type)
+        $sanitized = preg_replace('/\?.*$/', '', $sanitized);
+
+        // If URL still looks wrong, try building from product data
+        if (empty($sanitized) || !$this->isVideoUrl($sanitized)) {
+            return $url;
+        }
+
+        return $sanitized;
     }
 
     private function isVideoUrl(string $url): bool

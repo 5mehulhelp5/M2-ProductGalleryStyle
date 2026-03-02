@@ -87,13 +87,12 @@
     opacity: 1;
 }
 
-.rp-listing-play-btn svg path:first-child {
+.rp-listing-play-btn svg circle {
     transition: fill 0.1s ease;
 }
 
-.rp-listing-video-facade:hover .rp-listing-play-btn svg path:first-child {
-    fill: #f00;
-    fill-opacity: 1;
+.rp-listing-video-facade:hover .rp-listing-play-btn svg circle {
+    fill: rgba(0, 0, 0, 0.8);
 }
 
 /* ── Play/Stop overlay button ───────────────────── */

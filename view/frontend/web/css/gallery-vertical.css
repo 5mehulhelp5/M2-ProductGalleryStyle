@@ -1710,13 +1710,9 @@
     opacity: 1;
 }
 
-.rp-video-facade-bg {
-    transition: fill 0.1s cubic-bezier(0, 0, 0.2, 1);
-}
-
-.rp-video-facade:hover .rp-video-facade-bg {
-    fill: #f00;
-    fill-opacity: 1;
+/* Hover: brighten generic play circle */
+.rp-video-facade:hover .rp-video-facade-play circle {
+    fill: rgba(0, 0, 0, 0.8);
 }
 
 /* Hide play icon for non-video thumbnails */
