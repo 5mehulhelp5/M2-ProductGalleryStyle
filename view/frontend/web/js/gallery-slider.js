@@ -51,6 +51,12 @@ define([
             return;
         }
 
+        // Cache aspect-ratios from template inline styles so they survive style resets
+        var itemAspectRatios = [];
+        $items.each(function () {
+            itemAspectRatios.push(this.style.aspectRatio || '');
+        });
+
         init();
 
         function init() {
@@ -65,6 +71,9 @@ define([
                 var $item = $(this);
                 $item.removeClass(allTransitionClasses);
                 $item.attr('style', '');
+                if (itemAspectRatios[index]) {
+                    $item.css('aspect-ratio', itemAspectRatios[index]);
+                }
                 if (index === 0) {
                     $item.css({ 'display': 'block', 'opacity': '1' });
                 } else {
@@ -207,6 +216,9 @@ define([
                 var $item = $(this);
                 $item.removeClass(allTransitionClasses);
                 $item.attr('style', '');
+                if (itemAspectRatios[i]) {
+                    $item.css('aspect-ratio', itemAspectRatios[i]);
+                }
                 if (i === currentIndex) {
                     $item.css({ 'display': 'block', 'opacity': '1' });
                 } else {
