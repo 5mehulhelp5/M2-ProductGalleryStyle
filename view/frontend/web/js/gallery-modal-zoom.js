@@ -26,13 +26,26 @@ define([
             return;
         }
 
-        // Collect large image URLs
+        // Collect media items (images and videos)
         var images = [];
         $items.each(function () {
-            images.push({
-                url: $(this).attr('href'),
-                alt: $(this).find('img').attr('alt') || ''
-            });
+            var $item = $(this);
+            var mediaType = $item.data('media-type') || 'image';
+
+            if (mediaType === 'video') {
+                var $source = $item.find('video source');
+                images.push({
+                    type: 'video',
+                    url: $source.attr('src') || '',
+                    alt: ''
+                });
+            } else {
+                images.push({
+                    type: 'image',
+                    url: $item.attr('href'),
+                    alt: $item.find('img').attr('alt') || ''
+                });
+            }
         });
 
         // Prevent default link behavior
@@ -61,9 +74,18 @@ define([
             $indicator = $overlay.find('.rp-modal-zoom-indicator');
 
             for (var i = 0; i < images.length; i++) {
-                $content.append(
-                    '<img src="' + images[i].url + '" alt="' + images[i].alt + '" data-modal-index="' + i + '" />'
-                );
+                if (images[i].type === 'video') {
+                    $content.append(
+                        '<video autoplay loop muted playsinline data-modal-index="' + i + '" ' +
+                        'style="width:100%;max-width:90vw;display:block;margin:0 auto;">' +
+                        '<source src="' + images[i].url + '" type="video/mp4"/>' +
+                        '</video>'
+                    );
+                } else {
+                    $content.append(
+                        '<img src="' + images[i].url + '" alt="' + images[i].alt + '" data-modal-index="' + i + '" />'
+                    );
+                }
             }
 
             // Close handlers

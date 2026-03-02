@@ -78,6 +78,230 @@
                 </field>
             </group>
 
+            <!-- Video Group -->
+            <group id="video"
+                   translate="label"
+                   type="text"
+                   sortOrder="15"
+                   showInDefault="1"
+                   showInWebsite="1"
+                   showInStore="1">
+                <label>Video Settings</label>
+
+                <field id="enabled"
+                       translate="label comment"
+                       type="select"
+                       sortOrder="10"
+                       showInDefault="1"
+                       showInWebsite="1"
+                       showInStore="1">
+                    <label>Enable Video Support</label>
+                    <comment>Allow MP4, YouTube and Vimeo videos in the product gallery</comment>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                </field>
+
+                <!-- PDP Video Settings -->
+                <field id="autoplay"
+                       translate="label comment"
+                       type="select"
+                       sortOrder="20"
+                       showInDefault="1"
+                       showInWebsite="1"
+                       showInStore="1">
+                    <label>PDP Autoplay</label>
+                    <comment>Automatically play videos when they become visible on the product detail page</comment>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                    <depends>
+                        <field id="enabled">1</field>
+                    </depends>
+                </field>
+
+                <field id="loop"
+                       translate="label comment"
+                       type="select"
+                       sortOrder="30"
+                       showInDefault="1"
+                       showInWebsite="1"
+                       showInStore="1">
+                    <label>Loop</label>
+                    <comment>Restart the video automatically when it ends</comment>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                    <depends>
+                        <field id="enabled">1</field>
+                    </depends>
+                </field>
+
+                <field id="muted"
+                       translate="label comment"
+                       type="select"
+                       sortOrder="40"
+                       showInDefault="1"
+                       showInWebsite="1"
+                       showInStore="1">
+                    <label>Muted</label>
+                    <comment>Mute video audio. Required for autoplay in most browsers.</comment>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                    <depends>
+                        <field id="enabled">1</field>
+                    </depends>
+                </field>
+
+                <field id="controls"
+                       translate="label comment"
+                       type="select"
+                       sortOrder="50"
+                       showInDefault="1"
+                       showInWebsite="1"
+                       showInStore="1">
+                    <label>PDP Player Controls</label>
+                    <comment>Display the native video player controls on the product detail page (play, pause, volume, etc.)</comment>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                    <depends>
+                        <field id="enabled">1</field>
+                    </depends>
+                </field>
+
+                <field id="player_size"
+                       translate="label comment"
+                       type="select"
+                       sortOrder="55"
+                       showInDefault="1"
+                       showInWebsite="1"
+                       showInStore="1">
+                    <label>PDP Player Size</label>
+                    <comment>Whether the video player uses the video's native 16:9 proportion or matches the aspect ratio of the product images</comment>
+                    <source_model>Rollpix\ProductGallery\Model\Config\Source\ListingPlayerSize</source_model>
+                    <depends>
+                        <field id="enabled">1</field>
+                    </depends>
+                </field>
+
+                <field id="object_fit"
+                       translate="label comment"
+                       type="select"
+                       sortOrder="60"
+                       showInDefault="1"
+                       showInWebsite="1"
+                       showInStore="1">
+                    <label>PDP Video Fit Mode</label>
+                    <comment>How the video fits its container on the product detail page. Cover: crops to fill. Contain: shows entire video with possible letterboxing.</comment>
+                    <source_model>Rollpix\ProductGallery\Model\Config\Source\VideoObjectFit</source_model>
+                    <depends>
+                        <field id="enabled">1</field>
+                    </depends>
+                </field>
+
+                <field id="lazy_load"
+                       translate="label comment"
+                       type="select"
+                       sortOrder="70"
+                       showInDefault="1"
+                       showInWebsite="1"
+                       showInStore="1">
+                    <label>Lazy Load Videos</label>
+                    <comment>Only load video data when the video enters the viewport. Improves page load performance.</comment>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                    <depends>
+                        <field id="enabled">1</field>
+                    </depends>
+                </field>
+
+                <field id="max_size"
+                       translate="label comment"
+                       type="select"
+                       sortOrder="80"
+                       showInDefault="1"
+                       showInWebsite="1"
+                       showInStore="1">
+                    <label>Maximum Video File Size (MB)</label>
+                    <comment>Maximum allowed file size for MP4 video uploads in the product media gallery</comment>
+                    <source_model>Rollpix\ProductGallery\Model\Config\Source\VideoMaxSize</source_model>
+                    <depends>
+                        <field id="enabled">1</field>
+                    </depends>
+                </field>
+
+                <!-- Listing Video Settings -->
+                <field id="listing_enabled"
+                       translate="label comment"
+                       type="select"
+                       sortOrder="90"
+                       showInDefault="1"
+                       showInWebsite="1"
+                       showInStore="1">
+                    <label>Enable Video on Category Pages</label>
+                    <comment>Show product videos on category listing pages. Detects videos from the product media gallery (prioritizes video with small_image role).</comment>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                    <depends>
+                        <field id="enabled">1</field>
+                    </depends>
+                </field>
+
+                <field id="listing_autoplay"
+                       translate="label comment"
+                       type="select"
+                       sortOrder="100"
+                       showInDefault="1"
+                       showInWebsite="1"
+                       showInStore="1">
+                    <label>Listing Autoplay</label>
+                    <comment>Automatically play videos on category listing pages when visible. Recommended only when few products have videos.</comment>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                    <depends>
+                        <field id="enabled">1</field>
+                        <field id="listing_enabled">1</field>
+                    </depends>
+                </field>
+
+                <field id="listing_controls"
+                       translate="label comment"
+                       type="select"
+                       sortOrder="110"
+                       showInDefault="1"
+                       showInWebsite="1"
+                       showInStore="1">
+                    <label>Listing Play/Stop Button</label>
+                    <comment>Show a simplified play/stop button overlay on listing page videos</comment>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                    <depends>
+                        <field id="enabled">1</field>
+                        <field id="listing_enabled">1</field>
+                    </depends>
+                </field>
+
+                <field id="listing_player_size"
+                       translate="label comment"
+                       type="select"
+                       sortOrder="120"
+                       showInDefault="1"
+                       showInWebsite="1"
+                       showInStore="1">
+                    <label>Listing Player Size</label>
+                    <comment>Whether the video player matches the image dimensions of other products or uses the video's native 16:9 proportion</comment>
+                    <source_model>Rollpix\ProductGallery\Model\Config\Source\ListingPlayerSize</source_model>
+                    <depends>
+                        <field id="enabled">1</field>
+                        <field id="listing_enabled">1</field>
+                    </depends>
+                </field>
+
+                <field id="listing_video_fit"
+                       translate="label comment"
+                       type="select"
+                       sortOrder="130"
+                       showInDefault="1"
+                       showInWebsite="1"
+                       showInStore="1">
+                    <label>Listing Video Fit</label>
+                    <comment>Show the complete video (with letterbox if needed) or crop from center to fill the player</comment>
+                    <source_model>Rollpix\ProductGallery\Model\Config\Source\VideoObjectFit</source_model>
+                    <depends>
+                        <field id="enabled">1</field>
+                        <field id="listing_enabled">1</field>
+                    </depends>
+                </field>
+            </group>
+
             <!-- Layout Group -->
             <group id="layout"
                    translate="label"
@@ -374,6 +598,36 @@
                     <label>Mobile Behavior</label>
                     <comment>How images are displayed on mobile devices</comment>
                     <source_model>Rollpix\ProductGallery\Model\Config\Source\MobileBehavior</source_model>
+                </field>
+
+                <field id="carousel_dots"
+                       translate="label comment"
+                       type="select"
+                       sortOrder="20"
+                       showInDefault="1"
+                       showInWebsite="1"
+                       showInStore="1">
+                    <label>Carousel Dots</label>
+                    <comment>Show dot indicators in mobile carousel</comment>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                    <depends>
+                        <field id="behavior">carousel</field>
+                    </depends>
+                </field>
+
+                <field id="carousel_arrows"
+                       translate="label comment"
+                       type="select"
+                       sortOrder="30"
+                       showInDefault="1"
+                       showInWebsite="1"
+                       showInStore="1">
+                    <label>Carousel Arrows</label>
+                    <comment>Show prev/next arrows in mobile carousel</comment>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                    <depends>
+                        <field id="behavior">carousel</field>
+                    </depends>
                 </field>
             </group>
 

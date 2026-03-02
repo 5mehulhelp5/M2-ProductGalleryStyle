@@ -40,22 +40,35 @@ define([
 
             $items.each(function () {
                 var $item = $(this);
+                var $video = $item.find('video');
                 var $img = $item.find('img');
+                var $facade = $item.find('.rp-video-facade');
 
-                if (!$img.length) {
+                if ($video.length) {
+                    // Video item: listen for video-specific load events
+                    var video = $video[0];
+                    $video.on('loadeddata.rpshimmer canplay.rpshimmer error.rpshimmer', function () {
+                        markLoaded($item);
+                    });
+                    if (video.readyState >= 2) {
+                        markLoaded($item);
+                    }
+                } else if ($facade.length) {
+                    // External video facade: loaded immediately (thumbnail is CSS background)
                     markLoaded($item);
-                    return;
-                }
+                } else if ($img.length) {
+                    var img = $img[0];
 
-                var img = $img[0];
+                    // Listen for load/error regardless (handles lazy-loaded images)
+                    $img.on('load.rpshimmer error.rpshimmer', function () {
+                        markLoaded($item);
+                    });
 
-                // Listen for load/error regardless (handles lazy-loaded images)
-                $img.on('load.rpshimmer error.rpshimmer', function () {
-                    markLoaded($item);
-                });
-
-                // Already loaded (from cache or fast load)
-                if (img.complete) {
+                    // Already loaded (from cache or fast load)
+                    if (img.complete) {
+                        markLoaded($item);
+                    }
+                } else {
                     markLoaded($item);
                 }
             });

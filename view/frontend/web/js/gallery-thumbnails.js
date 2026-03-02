@@ -125,7 +125,8 @@ define([
             var props = {
                 width: el.offsetWidth + 'px',
                 height: el.offsetHeight + 'px',
-                transform: 'translate(' + el.offsetLeft + 'px, ' + el.offsetTop + 'px)'
+                transform: 'translate(' + el.offsetLeft + 'px, ' + el.offsetTop + 'px)',
+                opacity: '1'
             };
 
             if (animate === false) {

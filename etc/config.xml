@@ -37,6 +37,8 @@
             <!-- Mobile Settings -->
             <mobile>
                 <behavior>carousel</behavior>
+                <carousel_dots>1</carousel_dots>
+                <carousel_arrows>1</carousel_arrows>
             </mobile>
             <!-- Sticky Settings -->
             <sticky>
@@ -51,6 +53,23 @@
                 <counter_enabled>0</counter_enabled>
                 <focus_style>disabled</focus_style>
             </effects>
+            <!-- Video Settings -->
+            <video>
+                <enabled>1</enabled>
+                <autoplay>1</autoplay>
+                <loop>1</loop>
+                <muted>1</muted>
+                <controls>0</controls>
+                <player_size>video</player_size>
+                <object_fit>cover</object_fit>
+                <lazy_load>1</lazy_load>
+                <max_size>20</max_size>
+                <listing_enabled>1</listing_enabled>
+                <listing_autoplay>1</listing_autoplay>
+                <listing_controls>1</listing_controls>
+                <listing_player_size>image</listing_player_size>
+                <listing_video_fit>cover</listing_video_fit>
+            </video>
             <!-- Tabs Settings -->
             <tabs>
                 <inline_enabled>0</inline_enabled>

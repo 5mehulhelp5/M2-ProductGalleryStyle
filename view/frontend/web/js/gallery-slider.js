@@ -57,6 +57,9 @@ define([
             // Force-load all images: display:none prevents lazy loading
             $items.find('img[loading="lazy"]').removeAttr('loading');
 
+            // For video items in slider, set preload to metadata so they're ready
+            $items.find('video[preload="none"]').attr('preload', 'metadata');
+
             // Set initial state: only first image visible
             $items.each(function (index) {
                 var $item = $(this);

@@ -1,36 +1,33 @@
-## What's New
+## What's New in 1.7.2
 
-### Placeholder Image Support
-- Products without gallery images now display Magento's built-in placeholder image
-- Preserves the two-column layout and prevents design breaking
-- Works for both simple and configurable products
+### Video Support on Product Pages (PDP)
+- Inline HTML5 `<video>` playback for local MP4 files assigned as product gallery images
+- YouTube and Vimeo embedded inline with thumbnail facade, lazy-loaded iframe, and IntersectionObserver-based autoplay/pause via postMessage API
+- **Player Size**: Choose between 16:9 video proportion or matching the actual product image dimensions (reads pixel dimensions from disk)
+- **Object Fit**: Cover (crop to fill) or Contain (show full video with letterbox) for local MP4
 
-### Slider Layout Enhancements
-- Full slider gallery mode with image navigation
-- Support for multiple transition types (fade, slide, zoom-fade)
-- Configurable arrows, dots, and thumbnails
-- Mouse wheel and keyboard navigation support
-- Image counter indicator
+### Video Support on Category Listings
+- Replace product image with video (MP4, YouTube, Vimeo) on category and search result pages
+- Provider auto-detected from Magento media gallery — works with YouTube/Vimeo even when the `provider` field in the DB is empty
+- **Player Size**: Match Magento's image container dimensions (preserves grid layout) or standalone 16:9 proportion
+- **Video Fit**: Cover or Contain inside the listing card
+- Optional play/stop overlay button on listing videos
+- Batch video loading via Observer: one DB query per page, not per product
 
-### Effects & Animations
-- Scroll Focus effect (fade/blur/both) for stack layouts
-- Shimmer loading placeholder animation
-- Fade-in on scroll with slide-up animation
-- Thumbnail navigation with sliding highlight
-- Modal zoom mode with full-screen overlay
+### Shimmer for All Listing Images
+- Animated shimmer loading placeholder for all product images on listing and search pages, not just videos
+- Resolves via `load` event on images, `loadeddata` on videos, and a 4s timeout fallback
 
-### Visual Improvements
-- Thumbnail shape options (square or preserve aspect ratio)
-- Overlay thumbnail display mode (inside/outside image)
-- Expanded grid/fashion ratio options (13 variants from 20/80 to 80/20)
-- Responsive design improvements
-- Luma theme button styling fixes
+### New Files
+- `Model/VideoUrlParser.php` — Parse YouTube/Vimeo URLs to embed URLs
+- `Model/ProductVideoDataLoader.php` — Batch-load video data for product collections
+- `Observer/AddVideoDataToCollection.php` — Pre-load video data via collection event
+- `Plugin/Catalog/Block/Product/ImagePlugin.php` — Inject video HTML on listing pages
+- `Plugin/Catalog/Block/Product/ImageFactoryPlugin.php` — Pass product reference to Image block
+- `ViewModel/ListingVideoConfig.php` — Video config for listing templates
+- `gallery-video.js` — PDP video IntersectionObserver + postMessage
+- `gallery-listing-video.js` — Listing video IntersectionObserver + postMessage
+- `gallery-listing-effects.js` — Shimmer resolve for listing images
+- `gallery-listing.css` — Listing video and shimmer styles
 
-### Bug Fixes
-- Fixed thumbnail click navigation using DOM indices
-- Fixed dot click handling with proper event delegation
-- Fixed slider transitions and lazy loading issues
-- Fixed mobile layout collapse and accordion styling
-- Fixed thumbnail grid positioning on slider
-
-**Full Changelog**: https://github.com/ROLLPIX/M2-ProductGalleryStyle/compare/v1.3.1...v1.5.1
+**Full Changelog**: https://github.com/ROLLPIX/M2-ProductGalleryStyle/compare/v1.5.2...1.7.2

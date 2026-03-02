@@ -39,7 +39,7 @@ define([
            HOVER ZOOM - Magnifier lens + result panel
            =========================================================== */
         function initHoverZoom() {
-            var $items = $gallery.find('.rp-gallery-item');
+            var $items = $gallery.find('.rp-gallery-item[data-media-type="image"]');
 
             // For "right" position: create a single shared fixed result panel
             var $fixedResult = null;
@@ -177,7 +177,7 @@ define([
            CLICK ZOOM - Click to toggle zoom inside the image
            =========================================================== */
         function initClickZoom() {
-            var $items = $gallery.find('.rp-gallery-item');
+            var $items = $gallery.find('.rp-gallery-item[data-media-type="image"]');
 
             $items.each(function () {
                 var $item = $(this);

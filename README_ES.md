@@ -2,7 +2,7 @@
 
 [English version](README.md)
 
-Modulo moderno de galeria de producto estilo editorial para Magento 2 que reemplaza la galeria Fotorama por defecto. Incluye cuatro modos de layout (vertical, grilla, fashion, slider), cinco tipos de zoom (hover, click, lightbox, modal, deshabilitado), navegacion por miniaturas con highlight deslizante y modo overlay, efecto de foco por scroll, tabs accordion inline, carga shimmer, animaciones fade-in y experiencia mobile-first con carrusel.
+Modulo moderno de galeria de producto estilo editorial para Magento 2 que reemplaza la galeria Fotorama por defecto. Incluye cuatro modos de layout (vertical, grilla, fashion, slider), cinco tipos de zoom (hover, click, lightbox, modal, deshabilitado), navegacion por miniaturas con highlight deslizante y modo overlay, efecto de foco por scroll, tabs accordion inline, carga shimmer, animaciones fade-in, experiencia mobile-first con carrusel y soporte completo de video (MP4, YouTube, Vimeo) en paginas de producto y listings de categoria.
 
 ![Magento 2](https://img.shields.io/badge/Magento-2.4.7--2.4.8-orange.svg)
 ![PHP](https://img.shields.io/badge/PHP-8.1--8.4-blue.svg)
@@ -66,8 +66,26 @@ Modulo moderno de galeria de producto estilo editorial para Magento 2 que reempl
 - **Altura dinamica del slide**: El wrapper se adapta a la altura de cada imagen (sin espacio en blanco)
 - **Opcion stack vertical**: Layout alternativo de stack para mobile
 
+### Soporte de Video (Pagina de Producto)
+- **Videos MP4 locales**: Reproduccion HTML5 `<video>` para archivos MP4 asignados como imagenes de producto
+- **YouTube y Vimeo**: Iframes embebidos inline con facade de miniatura + boton play (carga lazy)
+- **Tamaño del reproductor**: Proporcion 16:9 o coincidir con las dimensiones de la imagen del producto
+- **Ajuste de video**: Cover (recortar para rellenar) o Contain (mostrar video completo con letterbox)
+- **Autoplay / Loop / Muted / Controles**: Todos configurables por separado
+- **IntersectionObserver**: Los videos se reproducen automaticamente al ser visibles, se pausan al salir del viewport
+- **postMessage API**: Control limpio de reproduccion/pausa para iframes de YouTube y Vimeo
+
+### Soporte de Video (Listing de Categoria)
+- **Video en cards de listing**: Reemplazar imagen del producto con video en paginas de categoria y resultados de busqueda
+- **MP4, YouTube y Vimeo**: Todos los proveedores soportados, auto-detectados desde la galeria de medios de Magento
+- **Tamaño del reproductor**: Coincidir dimensiones de imagen (usa el contenedor de Magento) o proporcion 16:9 independiente
+- **Ajuste de video**: Cover o Contain dentro del card de listing
+- **Boton Play/Stop**: Control opcional overlay en videos del listing
+- **Shimmer para todas las imagenes**: Placeholder animado de carga para todas las imagenes del listing (no solo videos)
+- **Carga batch**: Datos de video cargados por coleccion (una query por pagina, no por producto)
+
 ### Rendimiento
-- **Lazy Loading**: Carga diferida nativa para imagenes
+- **Lazy Loading**: Carga diferida nativa para imagenes; IntersectionObserver para videos
 - **Liviano**: Sin dependencias pesadas, GLightbox pesa solo ~2KB gzipped
 - **Variables CSS**: Estilos dinamicos sin recarga de pagina
 - **requestAnimationFrame**: Interacciones suaves basadas en scroll
@@ -165,6 +183,29 @@ Navegar a **Tiendas > Configuracion > Rollpix > Product Gallery**
 | Habilitar Sticky | Mantener info del producto fija al scrollear | Si |
 | Modo Sticky | Frame (panel scrolleable) o Scroll Natural (fijo arriba) | Scroll Natural |
 | Offset Superior | Distancia desde arriba en pixeles | 20px |
+
+### Configuracion de Video (Pagina de Producto)
+
+| Opcion | Descripcion | Default |
+|--------|-------------|---------|
+| Habilitar Video | Habilitar reproduccion de video en paginas de producto | Si |
+| Autoplay | Reproducir video automaticamente al cargar la pagina | Si |
+| Loop | Reproducir video en bucle | Si |
+| Silenciado | Silenciar video por defecto | Si |
+| Mostrar Controles | Mostrar controles nativos de video | No |
+| Tamaño del Reproductor | Proporcion de video (16:9) o Coincidir dimensiones de imagen | Video (16:9) |
+| Ajuste del Video | Cover (recortar para rellenar) o Contain (video completo) | Cover |
+| Carga Lazy | Cargar video solo cuando sea visible | Si |
+
+### Configuracion de Video (Listing de Categoria)
+
+| Opcion | Descripcion | Default |
+|--------|-------------|---------|
+| Habilitar Video en Listing | Mostrar videos en paginas de categoria/busqueda | Si |
+| Autoplay en Listing | Reproducir videos automaticamente en cards del listing | Si |
+| Mostrar Boton Play/Stop | Boton de control overlay play/stop | Si |
+| Tamaño del Reproductor | Coincidir dimensiones de imagen o Proporcion de video (16:9) | Coincidir imagen |
+| Ajuste del Video | Cover (recortar para rellenar) o Contain (video completo) | Cover |
 
 ### Configuracion Mobile
 
@@ -286,6 +327,9 @@ app/code/Rollpix/ProductGallery/
 |   +-- config.xml
 |   +-- acl.xml
 |   +-- di.xml
+|   +-- frontend/
+|   |   +-- di.xml
+|   |   +-- events.xml
 |   +-- adminhtml/
 |       +-- system.xml
 +-- Block/
@@ -293,6 +337,8 @@ app/code/Rollpix/ProductGallery/
 |       +-- ModuleInfo.php
 +-- Model/
 |   +-- Config.php
+|   +-- VideoUrlParser.php
+|   +-- ProductVideoDataLoader.php
 |   +-- Config/Source/
 |       +-- LayoutType.php
 |       +-- ColumnRatio.php
@@ -311,19 +357,34 @@ app/code/Rollpix/ProductGallery/
 |       +-- ThumbnailStyle.php
 |       +-- ThumbnailShape.php
 |       +-- FocusStyle.php
+|       +-- VideoObjectFit.php
+|       +-- ListingPlayerSize.php
++-- Observer/
+|   +-- AddVideoDataToCollection.php
++-- Plugin/Catalog/Block/Product/
+|   +-- ImagePlugin.php
+|   +-- ImageFactoryPlugin.php
 +-- ViewModel/
 |   +-- GalleryConfig.php
+|   +-- ListingVideoConfig.php
 +-- view/
     +-- frontend/
         +-- layout/
         |   +-- catalog_product_view.xml
+        |   +-- catalog_category_view.xml
+        |   +-- catalogsearch_result_index.xml
+        |   +-- default.xml
         +-- templates/
         |   +-- product/view/
-        |       +-- gallery-vertical.phtml
+        |   |   +-- gallery-vertical.phtml
+        |   +-- product/listing/
+        |       +-- video-init.phtml
+        |       +-- effects-init.phtml
         +-- requirejs-config.js
         +-- web/
             +-- css/
             |   +-- gallery-vertical.css
+            |   +-- gallery-listing.css
             +-- js/
                 +-- gallery-zoom.js
                 +-- gallery-carousel.js
@@ -333,6 +394,9 @@ app/code/Rollpix/ProductGallery/
                 +-- gallery-effects.js
                 +-- gallery-thumbnails.js
                 +-- gallery-modal-zoom.js
+                +-- gallery-video.js
+                +-- gallery-listing-video.js
+                +-- gallery-listing-effects.js
 ```
 
 ## Personalizacion
@@ -429,10 +493,20 @@ Las contribuciones son bienvenidas. Seguir estos pasos:
 ## Roadmap
 
 - [ ] Configuracion admin para habilitar/deshabilitar por categoria
-- [ ] Soporte de video en la galeria
 - [ ] Integracion con PageBuilder
 
 ## Changelog
+
+### 1.7.2 (2026-03-02)
+- **Soporte de video en paginas de producto (PDP)**: HTML5 `<video>` inline para MP4 locales; YouTube y Vimeo embebidos con facade de miniatura, iframe lazy-loaded e IntersectionObserver play/pause via postMessage
+- **Soporte de video en listings de categoria**: Reemplazar imagen del producto con video MP4, YouTube o Vimeo en paginas de categoria y busqueda. Proveedor auto-detectado desde la galeria de medios de Magento
+- **Config Tamaño del Reproductor (PDP)**: Proporcion de video 16:9 o coincidir dimensiones de la imagen del producto (lee tamano de pixel real desde disco)
+- **Config Tamaño del Reproductor (Listing)**: Coincidir el contenedor de imagen de Magento (preserva layout) o proporcion 16:9 independiente
+- **Config Ajuste de Video**: Cover (recortar para rellenar) o Contain (letterbox) para PDP y listing
+- **Boton Play/Stop**: Control opcional overlay de reproduccion/pausa para videos en listing
+- **Shimmer para todas las imagenes del listing**: Placeholder animado de carga para todas las imagenes en listing/busqueda (no solo videos)
+- **Carga batch de video**: Observer pre-carga datos de video para toda la coleccion en una query DB por pagina
+- Nuevos archivos: `Model/VideoUrlParser.php`, `Model/ProductVideoDataLoader.php`, `Observer/AddVideoDataToCollection.php`, `Plugin/.../ImagePlugin.php`, `Plugin/.../ImageFactoryPlugin.php`, `ViewModel/ListingVideoConfig.php`, `gallery-video.js`, `gallery-listing-video.js`, `gallery-listing-effects.js`, `gallery-listing.css`
 
 ### 1.5.0 (2026-02-15)
 - **Zoom Modal**: Nuevo tipo de zoom que abre un overlay a pantalla completa con todas las imagenes del producto apiladas verticalmente; al clickear la imagen N se scrollea el modal hasta esa imagen. Indicador de scroll con animacion bounce, se oculta tras 3 segundos o al primer scroll. Cerrar con boton X, click en overlay o tecla Escape

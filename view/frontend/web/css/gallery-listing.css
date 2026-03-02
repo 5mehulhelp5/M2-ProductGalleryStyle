@@ -1,0 +1,182 @@
+/**
+ * Rollpix ProductGallery - Listing Page Video & Shimmer Styles
+ *
+ * Styles for product videos and shimmer loading effects on category/listing pages.
+ *
+ * @category  Rollpix
+ * @package   Rollpix_ProductGallery
+ */
+
+/* ── Video wrapper in product card ────────────── */
+
+.rp-listing-video-wrapper {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+}
+
+/* Video element in product listing */
+.rp-listing-video {
+    width: 100%;
+    height: auto;
+    display: block;
+}
+
+/* When inside Magento's absolute-positioned image container */
+.product-image-container .rp-listing-video-wrapper {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+}
+
+.product-image-container .rp-listing-video {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+/* ── External video iframe (YouTube/Vimeo) ──────── */
+
+.rp-listing-video-iframe {
+    width: 100%;
+    height: 100%;
+    border: none;
+    display: block;
+}
+
+.product-image-container .rp-listing-video-iframe {
+    position: absolute;
+    top: 0;
+    left: 0;
+}
+
+/* ── Video facade (thumbnail + play) ────────────── */
+
+.rp-listing-video-facade {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    background-size: cover;
+    background-position: center;
+    background-color: #000;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.product-image-container .rp-listing-video-facade {
+    position: absolute;
+    top: 0;
+    left: 0;
+}
+
+.rp-listing-play-btn {
+    border: none;
+    background: none;
+    padding: 0;
+    cursor: pointer;
+    opacity: 0.85;
+    transition: opacity 0.2s ease;
+}
+
+.rp-listing-video-facade:hover .rp-listing-play-btn {
+    opacity: 1;
+}
+
+.rp-listing-play-btn svg circle {
+    transition: fill 0.1s ease;
+}
+
+.rp-listing-video-facade:hover .rp-listing-play-btn svg circle {
+    fill: rgba(0, 0, 0, 0.8);
+}
+
+/* ── Play/Stop overlay button ───────────────────── */
+
+.rp-listing-playstop {
+    position: absolute;
+    bottom: 8px;
+    right: 8px;
+    z-index: 5;
+    width: 32px;
+    height: 32px;
+    border: none;
+    border-radius: 50%;
+    background: rgba(0, 0, 0, 0.6);
+    color: #fff;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+    opacity: 0;
+    transition: opacity 0.2s ease;
+}
+
+.rp-listing-video-wrapper:hover .rp-listing-playstop {
+    opacity: 1;
+}
+
+.rp-listing-playstop:hover {
+    background: rgba(0, 0, 0, 0.8);
+}
+
+.rp-listing-playstop svg {
+    width: 14px;
+    height: 14px;
+}
+
+/* When playing, show pause icon; when paused, show play icon */
+.rp-listing-video-playing .rp-playstop-play {
+    display: none !important;
+}
+
+.rp-listing-video-playing .rp-playstop-pause {
+    display: block !important;
+}
+
+/* ── Shimmer loading effect for listings ─────────── */
+
+.rp-listing-shimmer {
+    position: relative;
+    overflow: hidden;
+}
+
+.rp-listing-shimmer:not(.rp-loaded)::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    z-index: 2;
+    background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+    background-size: 200% 100%;
+    animation: rp-listing-shimmer 1.5s infinite;
+}
+
+@keyframes rp-listing-shimmer {
+    0% { background-position: 200% 0; }
+    100% { background-position: -200% 0; }
+}
+
+.rp-listing-shimmer.rp-loaded::after {
+    display: none;
+}
+
+/* ── Print: hide listing videos ─────────────────── */
+
+@media print {
+    .rp-listing-video-wrapper {
+        display: none;
+    }
+}
+
+/* ── Reduced motion ──────────────────────────────── */
+
+@media (prefers-reduced-motion: reduce) {
+    .rp-listing-shimmer:not(.rp-loaded)::after {
+        animation: none;
+    }
+}

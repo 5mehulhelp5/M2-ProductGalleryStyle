@@ -1,0 +1,24 @@
+<?xml version="1.0"?>
+<!--
+/**
+ * Rollpix ProductGallery - Search Results Layout
+ *
+ * Adds video support JS for search results listing pages.
+ *
+ * @category  Rollpix
+ * @package   Rollpix_ProductGallery
+ */
+-->
+<page xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+      xsi:noNamespaceSchemaLocation="urn:magento:framework:View/Layout/etc/page_configuration.xsd">
+
+    <body>
+        <referenceContainer name="content">
+            <block class="Magento\Framework\View\Element\Template"
+                   name="rollpix.search.video.init"
+                   template="Rollpix_ProductGallery::product/listing/video-init.phtml"
+                   after="-"/>
+        </referenceContainer>
+    </body>
+
+</page>

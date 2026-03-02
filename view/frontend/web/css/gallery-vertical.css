@@ -436,9 +436,11 @@
     pointer-events: none;
     z-index: 2;
     box-sizing: border-box;
+    opacity: 0;
     transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1),
                 width 0.3s cubic-bezier(0.4, 0, 0.2, 1),
-                height 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+                height 0.3s cubic-bezier(0.4, 0, 0.2, 1),
+                opacity 0.2s ease;
 }
 
 .rp-highlight-no-transition {
@@ -996,7 +998,7 @@
     }
 
     /* Carousel: overlay indicators on image */
-    .rp-carousel-active .rp-carousel-indicators {
+    .rp-carousel-wrapper .rp-carousel-indicators {
         display: flex !important;
         position: absolute;
         bottom: 15px;
@@ -1076,6 +1078,52 @@
 .rp-carousel-dot.active {
     background: #333;
     transform: scale(1.2);
+}
+
+/* Carousel Arrows */
+.rp-carousel-prev,
+.rp-carousel-next {
+    display: none;
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    z-index: 5;
+    width: 36px;
+    height: 36px;
+    border: none;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.85);
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.15);
+    cursor: pointer;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+    color: #333;
+    -webkit-tap-highlight-color: transparent;
+}
+
+.rp-carousel-active .rp-carousel-prev,
+.rp-carousel-active .rp-carousel-next {
+    display: flex;
+}
+
+.rp-carousel-prev {
+    left: 8px;
+}
+
+.rp-carousel-next {
+    right: 8px;
+}
+
+.rp-carousel-prev:active,
+.rp-carousel-next:active {
+    background: rgba(255, 255, 255, 1);
+    transform: translateY(-50%) scale(0.95);
+}
+
+.rp-carousel-arrow-hidden {
+    opacity: 0.3;
+    pointer-events: none;
 }
 
 /* Stack mode (non-carousel) on mobile */
@@ -1589,5 +1637,174 @@
     [class*="rp-focus-"] .rp-gallery-item {
         opacity: 1 !important;
         filter: none !important;
+    }
+}
+
+/* ==============================================
+   Video Support
+   ============================================== */
+
+/* Video gallery item container */
+.rp-gallery-video {
+    display: block;
+    position: relative;
+    overflow: hidden;
+    line-height: 0;
+    cursor: default;
+}
+
+/* Video element fills container — aspect-ratio is set inline on .rp-gallery-video */
+.rp-gallery-video .rp-video-element {
+    width: 100%;
+    height: 100%;
+    display: block;
+    background: #000;
+}
+
+/* Disable zoom-related cursors on video items */
+.rp-zoom-hover .rp-gallery-video,
+.rp-zoom-click .rp-gallery-video,
+.rp-zoom-lightbox .rp-gallery-video,
+.rp-zoom-modal .rp-gallery-video {
+    cursor: default;
+}
+
+/* Slider layout: video fills container */
+.rp-layout-slider .rp-gallery-video .rp-video-element {
+    width: 100%;
+    height: 100%;
+}
+
+/* External video iframe (YouTube/Vimeo) */
+.rp-video-iframe {
+    width: 100%;
+    height: 100%;
+    border: none;
+    display: block;
+}
+
+/* Video facade (lazy-load thumbnail + play button) */
+.rp-video-facade {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    background-size: cover;
+    background-position: center;
+    background-color: #000;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.rp-video-facade-play {
+    position: relative;
+    z-index: 2;
+    border: none;
+    background: none;
+    padding: 0;
+    cursor: pointer;
+    opacity: 0.85;
+    transition: opacity 0.2s ease;
+}
+
+.rp-video-facade:hover .rp-video-facade-play {
+    opacity: 1;
+}
+
+/* Hover: brighten generic play circle */
+.rp-video-facade:hover .rp-video-facade-play circle {
+    fill: rgba(0, 0, 0, 0.8);
+}
+
+/* Hide play icon for non-video thumbnails */
+.rp-thumbnail-item:not(.rp-thumbnail-video) .rp-thumbnail-play-icon {
+    display: none;
+}
+
+/* Shimmer: video loading state */
+.rp-shimmer .rp-gallery-video .rp-video-element {
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.rp-shimmer .rp-gallery-video.rp-loaded .rp-video-element {
+    opacity: 1;
+}
+
+/* Fade-in: video items */
+.rp-fadein .rp-gallery-video {
+    opacity: 0;
+    transform: translateY(20px);
+    transition: opacity 0.5s ease, transform 0.5s ease;
+}
+
+.rp-fadein .rp-gallery-video.rp-visible {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+/* Thumbnail play icon overlay */
+.rp-thumbnail-video {
+    position: relative;
+}
+
+.rp-thumbnail-play-icon {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    z-index: 3;
+    width: 24px;
+    height: 24px;
+    background: rgba(0, 0, 0, 0.5);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    pointer-events: none;
+}
+
+.rp-thumbnail-play-icon svg {
+    width: 12px;
+    height: 12px;
+    margin-left: 2px;
+}
+
+.rp-thumbnail-video-preview {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+}
+
+/* Mobile carousel: video in slide */
+.rp-carousel-slide .rp-video-element {
+    width: 100%;
+    height: auto;
+    max-height: 90vh;
+}
+
+/* Print: hide video, show placeholder text */
+@media print {
+    .rp-gallery-video .rp-video-element {
+        display: none;
+    }
+    .rp-gallery-video::after {
+        content: '[Video]';
+        display: block;
+        padding: 40px;
+        text-align: center;
+        background: #f0f0f0;
+        color: #999;
+        font-size: 14px;
+    }
+}
+
+/* Reduced motion: handled by JS (pause autoplay) */
+@media (prefers-reduced-motion: reduce) {
+    .rp-shimmer .rp-gallery-video .rp-video-element,
+    .rp-fadein .rp-gallery-video {
+        transition: none;
     }
 }

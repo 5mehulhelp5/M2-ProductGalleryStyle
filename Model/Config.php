@@ -25,6 +25,8 @@ class Config
     private const XML_PATH_GRID_IMAGE_COLUMNS = 'rollpix_gallery/layout/grid_image_columns';
     private const XML_PATH_IMAGE_GAP = 'rollpix_gallery/layout/image_gap';
     private const XML_PATH_MOBILE_BEHAVIOR = 'rollpix_gallery/mobile/behavior';
+    private const XML_PATH_MOBILE_CAROUSEL_DOTS = 'rollpix_gallery/mobile/carousel_dots';
+    private const XML_PATH_MOBILE_CAROUSEL_ARROWS = 'rollpix_gallery/mobile/carousel_arrows';
     private const XML_PATH_STICKY_ENABLED = 'rollpix_gallery/sticky/enabled';
     private const XML_PATH_STICKY_MODE = 'rollpix_gallery/sticky/mode';
     private const XML_PATH_STICKY_OFFSET = 'rollpix_gallery/sticky/offset';
@@ -42,6 +44,20 @@ class Config
     private const XML_PATH_FADEIN_ENABLED = 'rollpix_gallery/effects/fadein_enabled';
     private const XML_PATH_COUNTER_ENABLED = 'rollpix_gallery/effects/counter_enabled';
     private const XML_PATH_FOCUS_STYLE = 'rollpix_gallery/effects/focus_style';
+    private const XML_PATH_VIDEO_ENABLED = 'rollpix_gallery/video/enabled';
+    private const XML_PATH_VIDEO_AUTOPLAY = 'rollpix_gallery/video/autoplay';
+    private const XML_PATH_VIDEO_LOOP = 'rollpix_gallery/video/loop';
+    private const XML_PATH_VIDEO_MUTED = 'rollpix_gallery/video/muted';
+    private const XML_PATH_VIDEO_CONTROLS = 'rollpix_gallery/video/controls';
+    private const XML_PATH_VIDEO_PLAYER_SIZE = 'rollpix_gallery/video/player_size';
+    private const XML_PATH_VIDEO_OBJECT_FIT = 'rollpix_gallery/video/object_fit';
+    private const XML_PATH_VIDEO_LAZY_LOAD = 'rollpix_gallery/video/lazy_load';
+    private const XML_PATH_VIDEO_LISTING_ENABLED = 'rollpix_gallery/video/listing_enabled';
+    private const XML_PATH_VIDEO_LISTING_AUTOPLAY = 'rollpix_gallery/video/listing_autoplay';
+    private const XML_PATH_VIDEO_LISTING_CONTROLS = 'rollpix_gallery/video/listing_controls';
+    private const XML_PATH_VIDEO_LISTING_PLAYER_SIZE = 'rollpix_gallery/video/listing_player_size';
+    private const XML_PATH_VIDEO_LISTING_VIDEO_FIT = 'rollpix_gallery/video/listing_video_fit';
+    private const XML_PATH_VIDEO_MAX_SIZE = 'rollpix_gallery/video/max_size';
 
     private ScopeConfigInterface $scopeConfig;
 
@@ -135,6 +151,24 @@ class Config
     {
         return (string) $this->scopeConfig->getValue(
             self::XML_PATH_MOBILE_BEHAVIOR,
+            ScopeInterface::SCOPE_STORE,
+            $storeId
+        );
+    }
+
+    public function isMobileCarouselDotsEnabled(?int $storeId = null): bool
+    {
+        return $this->scopeConfig->isSetFlag(
+            self::XML_PATH_MOBILE_CAROUSEL_DOTS,
+            ScopeInterface::SCOPE_STORE,
+            $storeId
+        );
+    }
+
+    public function isMobileCarouselArrowsEnabled(?int $storeId = null): bool
+    {
+        return $this->scopeConfig->isSetFlag(
+            self::XML_PATH_MOBILE_CAROUSEL_ARROWS,
             ScopeInterface::SCOPE_STORE,
             $storeId
         );
@@ -293,6 +327,132 @@ class Config
         ) ?: 'disabled';
     }
 
+    public function isVideoEnabled(?int $storeId = null): bool
+    {
+        return $this->scopeConfig->isSetFlag(
+            self::XML_PATH_VIDEO_ENABLED,
+            ScopeInterface::SCOPE_STORE,
+            $storeId
+        );
+    }
+
+    public function isVideoAutoplay(?int $storeId = null): bool
+    {
+        return $this->scopeConfig->isSetFlag(
+            self::XML_PATH_VIDEO_AUTOPLAY,
+            ScopeInterface::SCOPE_STORE,
+            $storeId
+        );
+    }
+
+    public function isVideoLoop(?int $storeId = null): bool
+    {
+        return $this->scopeConfig->isSetFlag(
+            self::XML_PATH_VIDEO_LOOP,
+            ScopeInterface::SCOPE_STORE,
+            $storeId
+        );
+    }
+
+    public function isVideoMuted(?int $storeId = null): bool
+    {
+        return $this->scopeConfig->isSetFlag(
+            self::XML_PATH_VIDEO_MUTED,
+            ScopeInterface::SCOPE_STORE,
+            $storeId
+        );
+    }
+
+    public function isVideoControlsEnabled(?int $storeId = null): bool
+    {
+        return $this->scopeConfig->isSetFlag(
+            self::XML_PATH_VIDEO_CONTROLS,
+            ScopeInterface::SCOPE_STORE,
+            $storeId
+        );
+    }
+
+    public function getVideoPdpPlayerSize(?int $storeId = null): string
+    {
+        return (string) $this->scopeConfig->getValue(
+            self::XML_PATH_VIDEO_PLAYER_SIZE,
+            ScopeInterface::SCOPE_STORE,
+            $storeId
+        ) ?: 'video';
+    }
+
+    public function getVideoObjectFit(?int $storeId = null): string
+    {
+        return (string) $this->scopeConfig->getValue(
+            self::XML_PATH_VIDEO_OBJECT_FIT,
+            ScopeInterface::SCOPE_STORE,
+            $storeId
+        ) ?: 'cover';
+    }
+
+    public function isVideoLazyLoad(?int $storeId = null): bool
+    {
+        return $this->scopeConfig->isSetFlag(
+            self::XML_PATH_VIDEO_LAZY_LOAD,
+            ScopeInterface::SCOPE_STORE,
+            $storeId
+        );
+    }
+
+    public function isVideoListingEnabled(?int $storeId = null): bool
+    {
+        return $this->scopeConfig->isSetFlag(
+            self::XML_PATH_VIDEO_LISTING_ENABLED,
+            ScopeInterface::SCOPE_STORE,
+            $storeId
+        );
+    }
+
+    public function isListingAutoplay(?int $storeId = null): bool
+    {
+        return $this->scopeConfig->isSetFlag(
+            self::XML_PATH_VIDEO_LISTING_AUTOPLAY,
+            ScopeInterface::SCOPE_STORE,
+            $storeId
+        );
+    }
+
+    public function isListingControlsEnabled(?int $storeId = null): bool
+    {
+        return $this->scopeConfig->isSetFlag(
+            self::XML_PATH_VIDEO_LISTING_CONTROLS,
+            ScopeInterface::SCOPE_STORE,
+            $storeId
+        );
+    }
+
+    public function getListingPlayerSize(?int $storeId = null): string
+    {
+        return (string) $this->scopeConfig->getValue(
+            self::XML_PATH_VIDEO_LISTING_PLAYER_SIZE,
+            ScopeInterface::SCOPE_STORE,
+            $storeId
+        ) ?: 'image';
+    }
+
+    public function getListingVideoFit(?int $storeId = null): string
+    {
+        return (string) $this->scopeConfig->getValue(
+            self::XML_PATH_VIDEO_LISTING_VIDEO_FIT,
+            ScopeInterface::SCOPE_STORE,
+            $storeId
+        ) ?: 'cover';
+    }
+
+    public function getVideoMaxSize(?int $storeId = null): int
+    {
+        return (int) $this->scopeConfig->getValue(
+            self::XML_PATH_VIDEO_MAX_SIZE,
+            ScopeInterface::SCOPE_STORE,
+            $storeId
+        ) ?: 20;
+    }
+
     /**
      * Get all configuration as array for JS
      */
@@ -316,7 +476,9 @@ class Config
                 'thumbnailShape' => $this->getThumbnailShape($storeId)
             ],
             'mobile' => [
-                'behavior' => $this->getMobileBehavior($storeId)
+                'behavior' => $this->getMobileBehavior($storeId),
+                'carouselDots' => $this->isMobileCarouselDotsEnabled($storeId),
+                'carouselArrows' => $this->isMobileCarouselArrowsEnabled($storeId)
             ],
             'sticky' => [
                 'enabled' => $this->isStickyEnabled($storeId),
@@ -339,6 +501,21 @@ class Config
                 'fadeInEnabled' => $this->isFadeInEnabled($storeId),
                 'counterEnabled' => $this->isCounterEnabled($storeId),
                 'focusStyle' => $this->getFocusStyle($storeId)
+            ],
+            'video' => [
+                'enabled' => $this->isVideoEnabled($storeId),
+                'autoplay' => $this->isVideoAutoplay($storeId),
+                'loop' => $this->isVideoLoop($storeId),
+                'muted' => $this->isVideoMuted($storeId),
+                'controls' => $this->isVideoControlsEnabled($storeId),
+                'pdpPlayerSize' => $this->getVideoPdpPlayerSize($storeId),
+                'objectFit' => $this->getVideoObjectFit($storeId),
+                'lazyLoad' => $this->isVideoLazyLoad($storeId),
+                'listingEnabled' => $this->isVideoListingEnabled($storeId),
+                'listingAutoplay' => $this->isListingAutoplay($storeId),
+                'listingControls' => $this->isListingControlsEnabled($storeId),
+                'listingPlayerSize' => $this->getListingPlayerSize($storeId),
+                'listingVideoFit' => $this->getListingVideoFit($storeId)
             ]
         ];
     }

@@ -9,9 +9,11 @@
 -->
 <config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
         xsi:noNamespaceSchemaLocation="urn:magento:framework:Module/etc/module.xsd">
+    <!-- build: 72ad59b -->
     <module name="Rollpix_ProductGallery">
         <sequence>
             <module name="Magento_Catalog"/>
+            <module name="Magento_ProductVideo"/>
         </sequence>
     </module>
 </config>
