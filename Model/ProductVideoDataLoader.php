@@ -127,7 +127,16 @@ class ProductVideoDataLoader
             $provider = $selected['provider'] ?? '';
             $videoUrl = $selected['video_url'] ?? '';
 
-            // Detect local MP4 by file extension if no provider set
+            // Detect provider from video URL when DB field is empty
+            if (empty($provider) && !empty($videoUrl)) {
+                if (preg_match('/youtube\.com|youtu\.be/i', $videoUrl)) {
+                    $provider = 'youtube';
+                } elseif (preg_match('/vimeo\.com/i', $videoUrl)) {
+                    $provider = 'vimeo';
+                }
+            }
+
+            // Detect local MP4 by file extension if still no provider
             if (empty($provider) && !empty($selected['file'])) {
                 $ext = strtolower(pathinfo($selected['file'], PATHINFO_EXTENSION));
                 if ($ext === 'mp4') {
