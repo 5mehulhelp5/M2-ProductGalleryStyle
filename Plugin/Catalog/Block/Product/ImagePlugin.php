@@ -17,16 +17,16 @@ namespace Rollpix\ProductGallery\Plugin\Catalog\Block\Product;
 use Magento\Catalog\Block\Product\Image as ImageBlock;
 use Magento\Store\Model\StoreManagerInterface;
 use Magento\Framework\UrlInterface;
+use Magento\Framework\App\ResourceConnection;
 use Rollpix\ProductGallery\Model\Config;
 use Rollpix\ProductGallery\Model\VideoUrlParser;
-use Rollpix\ProductGallery\Model\ProductVideoDataLoader;
 
 class ImagePlugin
 {
     private Config $config;
     private VideoUrlParser $videoUrlParser;
     private StoreManagerInterface $storeManager;
-    private ProductVideoDataLoader $videoDataLoader;
+    private ResourceConnection $resourceConnection;
 
     /**
      * Static cache for video data loaded from DB (avoids duplicate queries per request).
@@ -34,16 +34,21 @@ class ImagePlugin
      */
     private static array $videoDataCache = [];
 
+    /**
+     * @param ResourceConnection|null $resourceConnection Optional for backwards compat
+     *        with pre-compiled DI. Falls back to ObjectManager if not injected.
+     */
     public function __construct(
         Config $config,
         VideoUrlParser $videoUrlParser,
         StoreManagerInterface $storeManager,
-        ProductVideoDataLoader $videoDataLoader
+        ?ResourceConnection $resourceConnection = null
     ) {
         $this->config = $config;
         $this->videoUrlParser = $videoUrlParser;
         $this->storeManager = $storeManager;
-        $this->videoDataLoader = $videoDataLoader;
+        $this->resourceConnection = $resourceConnection
+            ?: \Magento\Framework\App\ObjectManager::getInstance()->get(ResourceConnection::class);
     }
 
     /**
@@ -55,7 +60,7 @@ class ImagePlugin
         $videoHtml = $this->getVideoHtml($subject, $result);
         $html = $videoHtml ?: $result;
 
-        // Shimmer wrapper for all listing images (handled in Fase 4)
+        // Shimmer wrapper for all listing images
         if ($this->config->isShimmerEnabled()) {
             $html = '<div class="rp-listing-shimmer">' . $html . '</div>';
         }
@@ -72,10 +77,9 @@ class ImagePlugin
             return null;
         }
 
-        // 1. Check if the image URL itself is an MP4 (existing behavior)
+        // 1. Check if the image URL itself is an MP4
         $imagePath = $subject->getData('image_url') ?: '';
         if ($this->isVideoUrl($imagePath)) {
-            // Strip cache path from URL — MP4 files should never use cached URLs
             $cleanUrl = $this->sanitizeVideoUrl($imagePath);
             return $this->buildLocalVideoHtml($cleanUrl, $subject);
         }
@@ -94,12 +98,10 @@ class ImagePlugin
         }
 
         // 3. Fallback: load video data directly from DB using product_id
-        //    This ensures YouTube/Vimeo videos work even when the observer
-        //    chain fails (FPC, event not dispatched, etc.)
         if (!$videoData || !is_array($videoData)) {
             $productId = (int)($subject->getData('product_id') ?: 0);
             if ($productId) {
-                $videoData = $this->loadVideoDataForProduct($productId);
+                $videoData = $this->loadVideoDataDirect($productId);
             }
         }
 
@@ -125,9 +127,10 @@ class ImagePlugin
 
     /**
      * Load video data for a single product directly from DB.
+     * Self-contained query — does NOT depend on ProductVideoDataLoader or Observer.
      * Uses static cache to avoid duplicate queries within the same request.
      */
-    private function loadVideoDataForProduct(int $productId): ?array
+    private function loadVideoDataDirect(int $productId): ?array
     {
         if (array_key_exists($productId, self::$videoDataCache)) {
             return self::$videoDataCache[$productId];
@@ -139,11 +142,98 @@ class ImagePlugin
             $storeId = 0;
         }
 
-        $allData = $this->videoDataLoader->loadForProductIds([$productId], $storeId);
-        $data = $allData[$productId] ?? null;
-        self::$videoDataCache[$productId] = $data;
+        try {
+            $connection = $this->resourceConnection->getConnection();
 
-        return $data;
+            $galleryTable = $this->resourceConnection->getTableName(
+                'catalog_product_entity_media_gallery'
+            );
+            $valueTable = $this->resourceConnection->getTableName(
+                'catalog_product_entity_media_gallery_value'
+            );
+            $entityTable = $this->resourceConnection->getTableName(
+                'catalog_product_entity_media_gallery_value_to_entity'
+            );
+            $videoTable = $this->resourceConnection->getTableName(
+                'catalog_product_entity_media_gallery_value_video'
+            );
+
+            $select = $connection->select()
+                ->from(['mgvte' => $entityTable], ['entity_id'])
+                ->join(
+                    ['mg' => $galleryTable],
+                    'mg.value_id = mgvte.value_id',
+                    ['file' => 'value']
+                )
+                ->join(
+                    ['mgv' => $valueTable],
+                    'mgv.value_id = mgvte.value_id'
+                        . ' AND (mgv.store_id = 0 OR mgv.store_id = ' . $storeId . ')',
+                    ['position']
+                )
+                ->joinLeft(
+                    ['mgvv' => $videoTable],
+                    'mgvv.value_id = mgvte.value_id'
+                        . ' AND (mgvv.store_id = 0 OR mgvv.store_id = ' . $storeId . ')',
+                    ['video_url' => 'url', 'provider']
+                )
+                ->where('mgvte.entity_id = ?', $productId)
+                ->where('mg.media_type = ?', 'external-video')
+                ->where('COALESCE(mgv.disabled, 0) = 0')
+                ->order('mgv.position ASC')
+                ->limit(1);
+
+            $row = $connection->fetchRow($select);
+
+            if (!$row) {
+                self::$videoDataCache[$productId] = null;
+                return null;
+            }
+
+            $provider = $row['provider'] ?? '';
+            $videoUrl = $row['video_url'] ?? '';
+            $file = $row['file'] ?? '';
+
+            // Detect local MP4 by file extension if no provider set
+            if (empty($provider) && !empty($file)) {
+                $ext = strtolower(pathinfo($file, PATHINFO_EXTENSION));
+                if ($ext === 'mp4') {
+                    $provider = 'local';
+                }
+            }
+
+            // For local MP4: build URL from gallery file path
+            if ($provider === 'local' && !empty($file)) {
+                $mediaUrl = $this->storeManager->getStore()
+                    ->getBaseUrl(UrlInterface::URL_TYPE_MEDIA);
+                $videoUrl = $mediaUrl . 'catalog/product' . $file;
+            }
+
+            if (empty($videoUrl) || empty($provider)) {
+                self::$videoDataCache[$productId] = null;
+                return null;
+            }
+
+            // Build thumbnail URL for external videos
+            $thumbnailUrl = '';
+            if ($provider !== 'local' && !empty($file)) {
+                $mediaUrl = $this->storeManager->getStore()
+                    ->getBaseUrl(UrlInterface::URL_TYPE_MEDIA);
+                $thumbnailUrl = $mediaUrl . 'catalog/product' . $file;
+            }
+
+            $data = [
+                'video_url' => $videoUrl,
+                'provider' => $provider,
+                'thumbnail' => $thumbnailUrl,
+            ];
+
+            self::$videoDataCache[$productId] = $data;
+            return $data;
+        } catch (\Exception $e) {
+            self::$videoDataCache[$productId] = null;
+            return null;
+        }
     }
 
     /**
@@ -211,7 +301,7 @@ class ImagePlugin
             $this->config->isListingAutoplay(),
             $this->config->isVideoMuted(),
             $this->config->isVideoLoop(),
-            true, // enable native controls for external embedded players
+            true,
             $parsed['id']
         );
 
@@ -226,7 +316,6 @@ class ImagePlugin
             . ' style="aspect-ratio:' . $aspectRatio . ';">';
 
         if (!empty($thumbnailUrl)) {
-            // Facade: show thumbnail with play button, JS loads iframe
             $html .= '<div class="rp-listing-video-facade"'
                 . ' style="background-image: url(\'' . htmlspecialchars($thumbnailUrl) . '\')">'
                 . '<button class="rp-listing-play-btn" type="button" aria-label="Play video">'
@@ -237,7 +326,6 @@ class ImagePlugin
                 . '</button>'
                 . '</div>';
         } else {
-            // No thumbnail, load iframe directly
             $html .= '<iframe src="' . htmlspecialchars($embedUrl) . '"'
                 . ' class="rp-listing-video-iframe"'
                 . ' frameborder="0"'
@@ -274,18 +362,12 @@ class ImagePlugin
 
     /**
      * Strip Magento image cache path from MP4 URLs.
-     * Cache URLs look like: /media/catalog/product/cache/{hash}/{file}
-     * We need raw: /media/catalog/product/{file}
      */
     private function sanitizeVideoUrl(string $url): string
     {
-        // Strip cache segment: /cache/[hash]/ → /
         $sanitized = preg_replace('#/cache/[a-f0-9]+/#i', '/', $url);
-
-        // Strip resize query params (width, height, store, image-type)
         $sanitized = preg_replace('/\?.*$/', '', $sanitized);
 
-        // If URL still looks wrong, try building from product data
         if (empty($sanitized) || !$this->isVideoUrl($sanitized)) {
             return $url;
         }
