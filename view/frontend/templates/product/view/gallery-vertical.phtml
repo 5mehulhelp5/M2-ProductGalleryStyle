@@ -20,10 +20,28 @@ if (!$product) {
 $productName = $block->escapeHtml($product->getName());
 
 /** @var \Magento\Framework\Data\Collection $images */
-$images = $product->getMediaGalleryImages();
+$rawImages = $product->getMediaGalleryImages();
+
+// Reorder gallery so the image with the "base" role appears first
+$baseImageFile = $product->getData('image'); // file path of image with base role
+$imageItems = [];
+$baseItem = null;
+
+if ($rawImages) {
+    foreach ($rawImages as $img) {
+        if ($baseImageFile && $img->getData('file') === $baseImageFile && !$baseItem) {
+            $baseItem = $img;
+        } else {
+            $imageItems[] = $img;
+        }
+    }
+    if ($baseItem) {
+        array_unshift($imageItems, $baseItem);
+    }
+}
 
 // Detect placeholder mode when product has no images
-$isPlaceholder = (!$images || $images->getSize() === 0);
+$isPlaceholder = (empty($imageItems));
 $placeholderUrl = '';
 
 if ($isPlaceholder) {
@@ -172,7 +190,7 @@ $gridImageColumns = $columnCss['gridImageColumns'] ?? 2;
                          alt="<?= $block->escapeHtmlAttr($productName) ?>"/>
                 </span>
             <?php else: ?>
-                <?php foreach ($images as $image): ?>
+                <?php foreach ($imageItems as $image): ?>
                     <?php
                     $isVideo = $galleryConfig->isVideoEnabled()
                         && $image->getData('media_type') === 'external-video';
@@ -282,7 +300,7 @@ $gridImageColumns = $columnCss['gridImageColumns'] ?? 2;
 
     <?php if ($layoutType === 'slider' && $thumbnailPosition !== 'disabled' && !$isPlaceholder): ?>
     <div class="rp-thumbnail-strip" data-role="rp-thumbnails">
-        <?php foreach ($images as $index => $image): ?>
+        <?php foreach ($imageItems as $index => $image): ?>
             <?php
             $isThumbVideo = $galleryConfig->isVideoEnabled()
                 && $image->getData('media_type') === 'external-video';

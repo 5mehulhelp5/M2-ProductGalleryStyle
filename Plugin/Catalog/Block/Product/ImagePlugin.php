@@ -19,21 +19,31 @@ use Magento\Store\Model\StoreManagerInterface;
 use Magento\Framework\UrlInterface;
 use Rollpix\ProductGallery\Model\Config;
 use Rollpix\ProductGallery\Model\VideoUrlParser;
+use Rollpix\ProductGallery\Model\ProductVideoDataLoader;
 
 class ImagePlugin
 {
     private Config $config;
     private VideoUrlParser $videoUrlParser;
     private StoreManagerInterface $storeManager;
+    private ProductVideoDataLoader $videoDataLoader;
+
+    /**
+     * Static cache for video data loaded from DB (avoids duplicate queries per request).
+     * @var array<int, array|null>
+     */
+    private static array $videoDataCache = [];
 
     public function __construct(
         Config $config,
         VideoUrlParser $videoUrlParser,
-        StoreManagerInterface $storeManager
+        StoreManagerInterface $storeManager,
+        ProductVideoDataLoader $videoDataLoader
     ) {
         $this->config = $config;
         $this->videoUrlParser = $videoUrlParser;
         $this->storeManager = $storeManager;
+        $this->videoDataLoader = $videoDataLoader;
     }
 
     /**
@@ -76,13 +86,23 @@ class ImagePlugin
             return $this->buildLocalVideoHtml($cleanUrl, $subject);
         }
 
-        // 2. Check pre-loaded video data from the observer (YouTube/Vimeo/MP4 from gallery)
+        // 2. Try pre-loaded video data from observer (fast path)
+        $videoData = null;
         $product = $subject->getData('rp_product');
-        if (!$product) {
-            return null;
+        if ($product) {
+            $videoData = $product->getData('rp_listing_video');
         }
 
-        $videoData = $product->getData('rp_listing_video');
+        // 3. Fallback: load video data directly from DB using product_id
+        //    This ensures YouTube/Vimeo videos work even when the observer
+        //    chain fails (FPC, event not dispatched, etc.)
+        if (!$videoData || !is_array($videoData)) {
+            $productId = (int)($subject->getData('product_id') ?: 0);
+            if ($productId) {
+                $videoData = $this->loadVideoDataForProduct($productId);
+            }
+        }
+
         if (!$videoData || !is_array($videoData)) {
             return null;
         }
@@ -101,6 +121,29 @@ class ImagePlugin
 
         // YouTube or Vimeo
         return $this->buildExternalVideoHtml($videoUrl, $provider, $thumbnail, $subject);
+    }
+
+    /**
+     * Load video data for a single product directly from DB.
+     * Uses static cache to avoid duplicate queries within the same request.
+     */
+    private function loadVideoDataForProduct(int $productId): ?array
+    {
+        if (array_key_exists($productId, self::$videoDataCache)) {
+            return self::$videoDataCache[$productId];
+        }
+
+        try {
+            $storeId = (int)$this->storeManager->getStore()->getId();
+        } catch (\Exception $e) {
+            $storeId = 0;
+        }
+
+        $allData = $this->videoDataLoader->loadForProductIds([$productId], $storeId);
+        $data = $allData[$productId] ?? null;
+        self::$videoDataCache[$productId] = $data;
+
+        return $data;
     }
 
     /**
