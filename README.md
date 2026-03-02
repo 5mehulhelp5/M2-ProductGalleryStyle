@@ -4,7 +4,7 @@
 
 SPONSOR: [ROLLPIX](https://www.rollpix.com)
 
-A modern, editorial-style product gallery module for Magento 2 that replaces the default Fotorama gallery. Features four layout modes (vertical, grid, fashion, slider), five zoom types (hover, click, lightbox, modal, disabled), thumbnail navigation with sliding highlight and overlay option, scroll focus effects, inline accordion tabs, shimmer loading, fade-in animations, and a mobile-first carousel experience.
+A modern, editorial-style product gallery module for Magento 2 that replaces the default Fotorama gallery. Features four layout modes (vertical, grid, fashion, slider), five zoom types (hover, click, lightbox, modal, disabled), thumbnail navigation with sliding highlight and overlay option, scroll focus effects, inline accordion tabs, shimmer loading, fade-in animations, mobile-first carousel experience, and full video support (MP4, YouTube, Vimeo) on both product pages and category listings.
 
 ![Magento 2](https://img.shields.io/badge/Magento-2.4.7--2.4.8-orange.svg)
 ![PHP](https://img.shields.io/badge/PHP-8.1--8.4-blue.svg)
@@ -68,8 +68,26 @@ A modern, editorial-style product gallery module for Magento 2 that replaces the
 - **Dynamic Slide Height**: Wrapper adapts to each slide's image height (no blank space)
 - **Vertical Stack Option**: Alternative stack layout for mobile
 
+### Video Support (Product Page)
+- **MP4 Local Videos**: HTML5 `<video>` playback for locally hosted MP4 files assigned as product images
+- **YouTube & Vimeo**: Embedded inline iframes with facade thumbnail + play button (lazy-loaded)
+- **Player Size**: Choose between 16:9 video proportion or matching the product image dimensions
+- **Object Fit**: Cover (crop to fill) or Contain (show full video with letterbox)
+- **Autoplay / Loop / Muted / Controls**: All configurable separately
+- **IntersectionObserver**: Videos autoplay when visible, pause when scrolled out of view
+- **postMessage API**: Clean play/pause control for YouTube and Vimeo iframes
+
+### Video Support (Category Listing)
+- **Video on Listing Cards**: Replace product image with video on category and search results pages
+- **MP4, YouTube & Vimeo**: All providers supported, auto-detected from Magento media gallery
+- **Player Size**: Match image dimensions (uses Magento's container) or standalone 16:9 proportion
+- **Video Fit**: Cover or Contain inside the listing card
+- **Play/Stop Button**: Optional overlay control button on listing videos
+- **Shimmer for All Images**: Animated shimmer loading placeholder for all listing images (not just videos)
+- **Batch Loading**: Video data loaded per-collection (one query per page, not per product)
+
 ### Performance
-- **Lazy Loading**: Native lazy loading for images
+- **Lazy Loading**: Native lazy loading for images; IntersectionObserver for videos
 - **Lightweight**: No heavy dependencies, GLightbox is only ~2KB gzipped
 - **CSS Variables**: Dynamic styling without page reload
 - **requestAnimationFrame**: Smooth scroll-based interactions
@@ -167,6 +185,29 @@ Navigate to **Stores > Configuration > Rollpix > Product Gallery**
 | Enable Sticky | Keep product info fixed while scrolling | Yes |
 | Sticky Mode | Frame (scrollable panel) or Natural Scroll (fixed at top) | Natural Scroll |
 | Top Offset | Distance from top in pixels | 20px |
+
+### Video Settings (Product Page)
+
+| Option | Description | Default |
+|--------|-------------|---------|
+| Enable Video | Enable video playback on product pages | Yes |
+| Autoplay | Autoplay video when page loads | Yes |
+| Loop | Loop video continuously | Yes |
+| Muted | Mute video by default | Yes |
+| Show Controls | Show native video controls | No |
+| Player Size | Video proportion (16:9) or Match image dimensions | Video (16:9) |
+| Object Fit | Cover (crop to fill) or Contain (show full video) | Cover |
+| Lazy Load | Load video only when visible | Yes |
+
+### Video Settings (Category Listing)
+
+| Option | Description | Default |
+|--------|-------------|---------|
+| Enable Listing Video | Show videos on category/search listing pages | Yes |
+| Listing Autoplay | Autoplay videos in listing cards | Yes |
+| Show Play/Stop Button | Overlay play/stop control button | Yes |
+| Player Size | Match image dimensions or Video proportion (16:9) | Match image |
+| Video Fit | Cover (crop to fill) or Contain (show full video) | Cover |
 
 ### Mobile Settings
 
@@ -288,6 +329,9 @@ app/code/Rollpix/ProductGallery/
 |   +-- config.xml
 |   +-- acl.xml
 |   +-- di.xml
+|   +-- frontend/
+|   |   +-- di.xml
+|   |   +-- events.xml
 |   +-- adminhtml/
 |       +-- system.xml
 +-- Block/
@@ -295,6 +339,8 @@ app/code/Rollpix/ProductGallery/
 |       +-- ModuleInfo.php
 +-- Model/
 |   +-- Config.php
+|   +-- VideoUrlParser.php
+|   +-- ProductVideoDataLoader.php
 |   +-- Config/Source/
 |       +-- LayoutType.php
 |       +-- ColumnRatio.php
@@ -313,19 +359,34 @@ app/code/Rollpix/ProductGallery/
 |       +-- ThumbnailStyle.php
 |       +-- ThumbnailShape.php
 |       +-- FocusStyle.php
+|       +-- VideoObjectFit.php
+|       +-- ListingPlayerSize.php
++-- Observer/
+|   +-- AddVideoDataToCollection.php
++-- Plugin/Catalog/Block/Product/
+|   +-- ImagePlugin.php
+|   +-- ImageFactoryPlugin.php
 +-- ViewModel/
 |   +-- GalleryConfig.php
+|   +-- ListingVideoConfig.php
 +-- view/
     +-- frontend/
         +-- layout/
         |   +-- catalog_product_view.xml
+        |   +-- catalog_category_view.xml
+        |   +-- catalogsearch_result_index.xml
+        |   +-- default.xml
         +-- templates/
         |   +-- product/view/
-        |       +-- gallery-vertical.phtml
+        |   |   +-- gallery-vertical.phtml
+        |   +-- product/listing/
+        |       +-- video-init.phtml
+        |       +-- effects-init.phtml
         +-- requirejs-config.js
         +-- web/
             +-- css/
             |   +-- gallery-vertical.css
+            |   +-- gallery-listing.css
             +-- js/
                 +-- gallery-zoom.js
                 +-- gallery-carousel.js
@@ -335,6 +396,9 @@ app/code/Rollpix/ProductGallery/
                 +-- gallery-effects.js
                 +-- gallery-thumbnails.js
                 +-- gallery-modal-zoom.js
+                +-- gallery-video.js
+                +-- gallery-listing-video.js
+                +-- gallery-listing-effects.js
 ```
 
 ## Customization
@@ -431,10 +495,20 @@ Contributions are welcome! Please follow these steps:
 ## Roadmap
 
 - [ ] Admin configuration for enable/disable per category
-- [ ] Video support in gallery
 - [ ] Integration with PageBuilder
 
 ## Changelog
+
+### 1.7.2 (2026-03-02)
+- **Video support on product pages (PDP)**: Inline HTML5 `<video>` for local MP4 files; embedded YouTube and Vimeo with thumbnail facade, lazy-loaded iframe, and IntersectionObserver play/pause via postMessage
+- **Video support on category listings**: Replace product image with MP4, YouTube, or Vimeo video on category and search results pages. Provider auto-detected from Magento media gallery
+- **Player Size config (PDP)**: Choose between 16:9 video proportion or matching product image dimensions (reads actual pixel size from disk)
+- **Player Size config (Listing)**: Match Magento image container dimensions (preserves layout) or standalone 16:9 proportion
+- **Video Fit config**: Cover (crop to fill) or Contain (letterbox) for both PDP and listing
+- **Play/Stop button**: Optional overlay play/pause control for listing videos
+- **Shimmer for all listing images**: Animated shimmer loading placeholder for all product images on listing/search pages (not just videos)
+- **Batch video loading**: Observer pre-loads video data for the entire product collection in one DB query per page
+- New files: `Model/VideoUrlParser.php`, `Model/ProductVideoDataLoader.php`, `Observer/AddVideoDataToCollection.php`, `Plugin/.../ImagePlugin.php`, `Plugin/.../ImageFactoryPlugin.php`, `ViewModel/ListingVideoConfig.php`, `gallery-video.js`, `gallery-listing-video.js`, `gallery-listing-effects.js`, `gallery-listing.css`
 
 ### 1.5.0 (2026-02-15)
 - **Modal Zoom**: New zoom type that opens a full-screen overlay with all product images stacked vertically; clicking image N scrolls the modal to that image. Scroll indicator with bounce animation, auto-hides after 3 seconds or on first scroll. Close via X button, overlay click, or Escape key
