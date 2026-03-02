@@ -125,15 +125,17 @@ class ImagePlugin
 
         $objectFit = $this->config->getListingObjectFit();
         $attrsStr = implode(' ', $attrs);
-        $width = $subject->getWidth() ?: '';
-        $height = $subject->getHeight() ?: '';
+        $width = (int)($subject->getWidth() ?: 0);
+        $height = (int)($subject->getHeight() ?: 0);
+        $aspectRatio = ($width && $height) ? $width . '/' . $height : '1/1';
 
-        $html = '<div class="rp-listing-video-wrapper" data-video-provider="local">'
+        $html = '<div class="rp-listing-video-wrapper" data-video-provider="local"'
+            . ' style="aspect-ratio:' . $aspectRatio . ';">'
             . '<video ' . $attrsStr
             . ' class="rp-listing-video"'
-            . ' style="width:100%;aspect-ratio:16/9;object-fit:' . htmlspecialchars($objectFit) . ';background:#000;"'
-            . ($width ? ' width="' . (int)$width . '"' : '')
-            . ($height ? ' height="' . (int)$height . '"' : '')
+            . ' style="width:100%;height:100%;object-fit:' . htmlspecialchars($objectFit) . ';background:#000;"'
+            . ($width ? ' width="' . $width . '"' : '')
+            . ($height ? ' height="' . $height . '"' : '')
             . '>'
             . '<source src="' . htmlspecialchars($videoUrl) . '" type="video/mp4"/>'
             . '</video>';
@@ -171,11 +173,14 @@ class ImagePlugin
         );
 
         $embedUrl = $this->videoUrlParser->getEmbedUrl($parsed['provider'], $parsed['id'], $params);
-        $objectFit = $this->config->getListingObjectFit();
+        $width = (int)($subject->getWidth() ?: 0);
+        $height = (int)($subject->getHeight() ?: 0);
+        $aspectRatio = ($width && $height) ? $width . '/' . $height : '1/1';
 
         $html = '<div class="rp-listing-video-wrapper rp-listing-video-external"'
             . ' data-video-provider="' . htmlspecialchars($provider) . '"'
-            . ' data-embed-url="' . htmlspecialchars($embedUrl) . '">';
+            . ' data-embed-url="' . htmlspecialchars($embedUrl) . '"'
+            . ' style="aspect-ratio:' . $aspectRatio . ';">';
 
         if (!empty($thumbnailUrl)) {
             // Facade: show thumbnail with play button, JS loads iframe

@@ -55,9 +55,11 @@ class ImagePlugin
     }
 
     /**
-     * Return direct media URL for video files instead of cached image URL
+     * Return direct media URL for video files instead of cached image URL.
+     * Must be "around" (not "after") because the original getUrl() crashes
+     * when setBaseFile was skipped — internal _processor is null.
      */
-    public function afterGetUrl(Image $subject, ?string $result): ?string
+    public function aroundGetUrl(Image $subject, callable $proceed): ?string
     {
         if ($subject->getData('_rp_is_video')) {
             $file = $subject->getData('_rp_video_file');
@@ -66,10 +68,10 @@ class ImagePlugin
                     ->getBaseUrl(UrlInterface::URL_TYPE_MEDIA);
                 return $mediaUrl . 'catalog/product' . $file;
             } catch (\Exception $e) {
-                return $result;
+                return '';
             }
         }
-        return $result;
+        return $proceed();
     }
 
     private function isVideoFile(?string $file): bool
