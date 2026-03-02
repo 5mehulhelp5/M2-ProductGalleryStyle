@@ -266,10 +266,10 @@ class ImagePlugin
 
         $videoFit = $this->config->getListingVideoFit();
         $attrsStr = implode(' ', $attrs);
-        $aspectRatio = $this->getListingAspectRatio($subject);
+        $wrapperStyle = $this->getListingWrapperStyle($subject);
 
         $html = '<div class="rp-listing-video-wrapper" data-video-provider="local"'
-            . ' style="aspect-ratio:' . $aspectRatio . ';">'
+            . ' style="' . $wrapperStyle . '">'
             . '<video ' . $attrsStr
             . ' class="rp-listing-video"'
             . ' style="width:100%;height:100%;object-fit:' . htmlspecialchars($videoFit) . ';background:#000;"'
@@ -310,12 +310,12 @@ class ImagePlugin
         );
 
         $embedUrl = $this->videoUrlParser->getEmbedUrl($parsed['provider'], $parsed['id'], $params);
-        $aspectRatio = $this->getListingAspectRatio($subject);
+        $wrapperStyle = $this->getListingWrapperStyle($subject);
 
         $html = '<div class="rp-listing-video-wrapper rp-listing-video-external"'
             . ' data-video-provider="' . htmlspecialchars($provider) . '"'
             . ' data-embed-url="' . htmlspecialchars($embedUrl) . '"'
-            . ' style="aspect-ratio:' . $aspectRatio . ';">';
+            . ' style="' . $wrapperStyle . '">';
 
         if (!empty($thumbnailUrl)) {
             $html .= '<div class="rp-listing-video-facade"'
@@ -363,22 +363,27 @@ class ImagePlugin
     }
 
     /**
-     * Determine the aspect-ratio for the listing video wrapper.
-     * "image" = match the product image dimensions, "video" = 16:9.
+     * Build inline style for the listing video wrapper.
+     * "image" = constrained to product image pixel dimensions.
+     * "video" = 16:9 filling available width.
      */
-    private function getListingAspectRatio(ImageBlock $subject): string
+    private function getListingWrapperStyle(ImageBlock $subject): string
     {
         $playerSize = $this->config->getListingPlayerSize();
 
         if ($playerSize === 'video') {
-            return '16/9';
+            return 'aspect-ratio:16/9;width:100%;';
         }
 
-        // Default: match image block dimensions
+        // Default: match image block pixel dimensions exactly
         $width = (int)($subject->getWidth() ?: 0);
         $height = (int)($subject->getHeight() ?: 0);
 
-        return ($width && $height) ? $width . '/' . $height : '1/1';
+        if ($width && $height) {
+            return 'width:' . $width . 'px;height:' . $height . 'px;max-width:100%;margin:0 auto;';
+        }
+
+        return 'aspect-ratio:1/1;width:100%;';
     }
 
     /**
