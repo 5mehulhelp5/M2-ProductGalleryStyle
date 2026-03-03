@@ -1653,10 +1653,10 @@
     cursor: default;
 }
 
-/* Video element fills container — aspect-ratio is set inline on .rp-gallery-video */
+/* Video element: use intrinsic video dimensions (no forced aspect-ratio on local videos) */
 .rp-gallery-video .rp-video-element {
     width: 100%;
-    height: 100%;
+    height: auto;
     display: block;
     background: #000;
 }
@@ -1669,10 +1669,10 @@
     cursor: default;
 }
 
-/* Slider layout: video fills container */
+/* Slider layout: video uses intrinsic dimensions (same as other layouts) */
 .rp-layout-slider .rp-gallery-video .rp-video-element {
     width: 100%;
-    height: 100%;
+    height: auto;
 }
 
 /* External video iframe (YouTube/Vimeo) */

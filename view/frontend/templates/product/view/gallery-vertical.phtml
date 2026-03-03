@@ -217,8 +217,7 @@ $gridImageColumns = $columnCss['gridImageColumns'] ?? 2;
                               data-media-type="video"
                               data-video-provider="local"
                               data-rp-value-id="<?= (int)$image->getData('value_id') ?>"
-                              data-gallery="product-gallery"
-                              style="aspect-ratio:<?= $block->escapeHtmlAttr($galleryConfig->getPdpVideoAspectRatio($product)) ?>">
+                              data-gallery="product-gallery">
                             <video
                                 <?php if ($galleryConfig->isVideoAutoplay()): ?>autoplay<?php endif; ?>
                                 <?php if ($galleryConfig->isVideoLoop()): ?>loop<?php endif; ?>
