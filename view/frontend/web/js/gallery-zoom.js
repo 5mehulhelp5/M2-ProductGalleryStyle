@@ -1,7 +1,7 @@
 /**
  * Rollpix ProductGallery - Zoom Component
  *
- * Supports: hover (magnifier), lightbox (GLightbox), click (in-place), disabled
+ * Supports: hover (magnifier), click (in-place), disabled
  *
  * @category  Rollpix
  * @package   Rollpix_ProductGallery
@@ -18,12 +18,7 @@ define([
         var zoomLevel = config.zoom ? config.zoom.level : 3;
         var zoomPosition = config.zoom ? config.zoom.position : 'right';
 
-        if (zoomType === 'disabled' || zoomType === 'modal' || zoomType === 'carousel') {
-            return;
-        }
-
-        if (zoomType === 'lightbox') {
-            initLightbox();
+        if (zoomType === 'disabled' || zoomType === 'modal' || zoomType === 'carousel' || zoomType === 'lightbox') {
             return;
         }
 
@@ -265,50 +260,5 @@ define([
             });
         }
 
-        /* ===========================================================
-           LIGHTBOX - Full-screen gallery with close / navigation
-           =========================================================== */
-        function initLightbox() {
-            // Load GLightbox CSS
-            if (!$('link[href*="glightbox"]').length) {
-                $('head').append(
-                    '<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/glightbox@3.3.0/dist/css/glightbox.min.css">'
-                );
-            }
-
-            // Load GLightbox JS
-            if (typeof GLightbox === 'undefined') {
-                $.getScript(
-                    'https://cdn.jsdelivr.net/npm/glightbox@3.3.0/dist/js/glightbox.min.js',
-                    function () { createLightbox(); }
-                );
-            } else {
-                createLightbox();
-            }
-        }
-
-        function createLightbox() {
-            if (typeof GLightbox === 'undefined') return;
-
-            var lightbox = GLightbox({
-                selector: '.rp-gallery-item.glightbox',
-                touchNavigation: true,
-                loop: true,
-                closeButton: true,
-                closeOnOutsideClick: true,
-                zoomable: true,
-                draggable: true,
-                openEffect: 'fade',
-                closeEffect: 'fade',
-                cssEf498: 'fade'
-            });
-
-            // Extra close-on-Escape safety
-            $(document).on('keydown.rplightbox', function (e) {
-                if (e.key === 'Escape' && lightbox) {
-                    lightbox.close();
-                }
-            });
-        }
     };
 });

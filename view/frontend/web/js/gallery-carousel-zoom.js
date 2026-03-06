@@ -17,7 +17,7 @@ define([
         var $gallery = $(element);
         var zoomType = config.zoom ? config.zoom.type : 'hover';
 
-        if (zoomType !== 'carousel') {
+        if (zoomType !== 'carousel' && zoomType !== 'lightbox') {
             return;
         }
 

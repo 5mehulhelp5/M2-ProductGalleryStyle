@@ -268,13 +268,10 @@ $gridImageColumns = $columnCss['gridImageColumns'] ?? 2;
                         </span>
                     <?php else: ?>
                         <a href="<?= $block->escapeUrl($largeImageUrl) ?>"
-                           class="rp-gallery-item <?= $zoomType === 'lightbox' ? 'glightbox' : '' ?>"
+                           class="rp-gallery-item"
                            data-media-type="image"
                            data-rp-value-id="<?= (int)$image->getData('value_id') ?>"
-                           data-gallery="product-gallery"
-                           <?php if ($zoomType === 'lightbox'): ?>
-                           data-glightbox="title: <?= $block->escapeHtmlAttr($imageLabel) ?>"
-                           <?php endif; ?>>
+                           data-gallery="product-gallery">
                             <img src="<?= $block->escapeUrl($mediumImageUrl) ?>"
                                  alt="<?= $block->escapeHtmlAttr($imageLabel) ?>"
                                  loading="lazy"/>
