@@ -56,7 +56,6 @@ define([
         var $overlay = null;
         var $content = null;
         var $indicator = null;
-        var indicatorTimer = null;
 
         function buildModal() {
             $overlay = $(
@@ -158,15 +157,9 @@ define([
 
         function showIndicator() {
             $indicator.removeClass('rp-indicator-hidden');
-
-            clearTimeout(indicatorTimer);
-            indicatorTimer = setTimeout(function () {
-                hideIndicator();
-            }, 3000);
         }
 
         function hideIndicator() {
-            clearTimeout(indicatorTimer);
             $indicator.addClass('rp-indicator-hidden');
         }
 

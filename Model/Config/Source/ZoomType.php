@@ -18,6 +18,7 @@ class ZoomType implements OptionSourceInterface
     public const ZOOM_LIGHTBOX = 'lightbox';
     public const ZOOM_CLICK = 'click';
     public const ZOOM_MODAL = 'modal';
+    public const ZOOM_CAROUSEL = 'carousel';
     public const ZOOM_DISABLED = 'disabled';
 
     /**
@@ -30,6 +31,7 @@ class ZoomType implements OptionSourceInterface
             ['value' => self::ZOOM_LIGHTBOX, 'label' => __('Lightbox (GLightbox)')],
             ['value' => self::ZOOM_CLICK, 'label' => __('Click to Zoom (inside image)')],
             ['value' => self::ZOOM_MODAL, 'label' => __('Modal Zoom (full-screen stack)')],
+            ['value' => self::ZOOM_CAROUSEL, 'label' => __('Carousel Modal (single image navigation)')],
             ['value' => self::ZOOM_DISABLED, 'label' => __('Disabled')]
         ];
     }

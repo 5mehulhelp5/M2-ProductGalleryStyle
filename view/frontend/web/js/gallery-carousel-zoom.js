@@ -1,0 +1,213 @@
+/**
+ * Rollpix ProductGallery - Carousel Zoom Component
+ *
+ * Opens a modal overlay showing one image at a time with prev/next navigation.
+ * Dark backdrop, close button, arrow keys support.
+ *
+ * @category  Rollpix
+ * @package   Rollpix_ProductGallery
+ */
+define([
+    'jquery',
+    'domReady!'
+], function ($) {
+    'use strict';
+
+    return function (config, element) {
+        var $gallery = $(element);
+        var zoomType = config.zoom ? config.zoom.type : 'hover';
+
+        if (zoomType !== 'carousel') {
+            return;
+        }
+
+        var $items = $gallery.find('.rp-gallery-item');
+        if ($items.length === 0) {
+            return;
+        }
+
+        // Collect media items
+        var media = [];
+        $items.each(function () {
+            var $item = $(this);
+            var mediaType = $item.data('media-type') || 'image';
+
+            if (mediaType === 'video') {
+                var $source = $item.find('video source');
+                media.push({
+                    type: 'video',
+                    url: $source.attr('src') || '',
+                    alt: ''
+                });
+            } else {
+                media.push({
+                    type: 'image',
+                    url: $item.attr('href'),
+                    alt: $item.find('img').attr('alt') || ''
+                });
+            }
+        });
+
+        // Prevent default link behavior
+        $items.on('click', function (e) {
+            e.preventDefault();
+        });
+
+        var $overlay = null;
+        var $stage = null;
+        var $counter = null;
+        var currentIndex = 0;
+
+        function buildModal() {
+            $overlay = $(
+                '<div class="rp-carousel-zoom-overlay">' +
+                    '<button class="rp-carousel-zoom-close" type="button" aria-label="Close">&times;</button>' +
+                    '<div class="rp-carousel-zoom-stage"></div>' +
+                    '<div class="rp-carousel-zoom-counter"></div>' +
+                    (media.length > 1 ?
+                        '<button class="rp-carousel-zoom-prev" type="button" aria-label="Previous">' +
+                            '<svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"></polyline></svg>' +
+                        '</button>' +
+                        '<button class="rp-carousel-zoom-next" type="button" aria-label="Next">' +
+                            '<svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 6 15 12 9 18"></polyline></svg>' +
+                        '</button>'
+                    : '') +
+                '</div>'
+            );
+
+            $stage = $overlay.find('.rp-carousel-zoom-stage');
+            $counter = $overlay.find('.rp-carousel-zoom-counter');
+
+            // Close handlers
+            $overlay.find('.rp-carousel-zoom-close').on('click', closeModal);
+
+            $overlay.on('click', function (e) {
+                if ($(e.target).is('.rp-carousel-zoom-overlay') || $(e.target).is('.rp-carousel-zoom-stage')) {
+                    closeModal();
+                }
+            });
+
+            // Navigation
+            $overlay.find('.rp-carousel-zoom-prev').on('click', function () {
+                navigate(-1);
+            });
+            $overlay.find('.rp-carousel-zoom-next').on('click', function () {
+                navigate(1);
+            });
+
+            $('body').append($overlay);
+        }
+
+        function showItem(index) {
+            currentIndex = index;
+            $stage.empty();
+
+            var item = media[index];
+            if (item.type === 'video') {
+                $stage.append(
+                    '<video autoplay loop muted playsinline class="rp-carousel-zoom-media">' +
+                    '<source src="' + item.url + '" type="video/mp4"/>' +
+                    '</video>'
+                );
+            } else {
+                $stage.append(
+                    '<img src="' + item.url + '" alt="' + item.alt + '" class="rp-carousel-zoom-media" />'
+                );
+            }
+
+            $counter.text((index + 1) + ' / ' + media.length);
+        }
+
+        function navigate(direction) {
+            var newIndex = currentIndex + direction;
+            if (newIndex < 0) {
+                newIndex = media.length - 1;
+            } else if (newIndex >= media.length) {
+                newIndex = 0;
+            }
+            showItem(newIndex);
+        }
+
+        function openModal(index) {
+            if (!$overlay) {
+                buildModal();
+            }
+
+            showItem(index);
+            $('body').css('overflow', 'hidden');
+            $overlay.css('display', 'flex');
+
+            // Force reflow then animate
+            $overlay[0].offsetHeight;
+            $overlay.addClass('rp-carousel-active');
+
+            // Keyboard navigation
+            $(document).on('keydown.rpcarouselzoom', function (e) {
+                if (e.key === 'Escape') {
+                    closeModal();
+                } else if (e.key === 'ArrowLeft') {
+                    navigate(-1);
+                } else if (e.key === 'ArrowRight') {
+                    navigate(1);
+                }
+            });
+        }
+
+        function closeModal() {
+            if (!$overlay) {
+                return;
+            }
+
+            $overlay.removeClass('rp-carousel-active');
+            $(document).off('keydown.rpcarouselzoom');
+
+            setTimeout(function () {
+                $overlay.css('display', 'none');
+                $('body').css('overflow', '');
+                $stage.empty();
+            }, 300);
+        }
+
+        // Touch swipe support
+        function initSwipe() {
+            var startX = 0;
+            var startY = 0;
+            var threshold = 50;
+
+            $overlay.on('touchstart.rpcarouselzoom', function (e) {
+                var touch = e.originalEvent.touches[0];
+                startX = touch.clientX;
+                startY = touch.clientY;
+            });
+
+            $overlay.on('touchend.rpcarouselzoom', function (e) {
+                var touch = e.originalEvent.changedTouches[0];
+                var diffX = touch.clientX - startX;
+                var diffY = touch.clientY - startY;
+
+                // Only handle horizontal swipes (not vertical scrolls)
+                if (Math.abs(diffX) > threshold && Math.abs(diffX) > Math.abs(diffY)) {
+                    if (diffX < 0) {
+                        navigate(1); // swipe left = next
+                    } else {
+                        navigate(-1); // swipe right = prev
+                    }
+                }
+            });
+        }
+
+        // Bind click on each gallery item
+        $items.each(function (index) {
+            $(this).on('click.rpcarouselzoom', function (e) {
+                e.preventDefault();
+                openModal(index);
+
+                // Init swipe once overlay exists
+                if ($overlay && !$overlay.data('swipe-init')) {
+                    initSwipe();
+                    $overlay.data('swipe-init', true);
+                }
+            });
+        });
+    };
+});
