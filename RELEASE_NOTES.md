@@ -1,3 +1,20 @@
+## What's New in 1.7.8
+
+### Fixed — Shimmer loading effect stuck on images wrapped by WebP plugins
+
+The shimmer placeholder animation was persisting indefinitely over loaded product gallery images on sites using a WebP optimization plugin (MageFan `mfwebp`, Yireo WebP2, or similar) that wraps `<img>` elements in `<picture><source type="image/webp"><img></picture>` after DOM ready. The original `initShimmer()` relied on jQuery `$img.on('load', ...)` event listeners attached at page init — when the WebP plugin mutated the DOM **after** the listeners were attached, the listeners stayed bound to the orphaned original `<img>` element while the browser rendered the new one. Result: the `rp-loaded` class was never applied, shimmer animation ran forever (until the 4s safety timeout kicked in, by which point the image was clearly already loaded).
+
+Additional contributing factors:
+- `loading="lazy"` on the `<img>` deferred the actual fetch, making the event-listener race more likely.
+- `<source srcset>` WebP variant caused the browser to use the source element for the actual load, while the `<img>` baseline event lifecycle could be skipped in some browser/plugin combinations.
+- `img.complete` can return `true` with `naturalWidth === 0` during picture/srcset resolution edge cases.
+
+**Fix**: rewrote `initShimmer()` to use **polling-based detection** instead of event listeners. Every 100ms (up to a 4-second cap), the script re-queries each `.rp-gallery-item` for its current `<img>`/`<video>` child, checks `img.complete && img.naturalWidth > 0` (more robust than `complete` alone), and applies `rp-loaded` when the condition is met. Because the child element is **re-queried** on every tick, DOM mutations by third-party plugins don't break detection — the poll always sees the current `<img>` in place. Cached images are detected synchronously on the initial pass (no perceived lag). Poll auto-stops as soon as all items are loaded.
+
+No behavior change for sites without WebP plugins — the polling approach works identically fast for native `<img>` elements (immediate sync detection + event-free resolution thereafter).
+
+---
+
 ## What's New in 1.7.2
 
 ### Video Support on Product Pages (PDP)

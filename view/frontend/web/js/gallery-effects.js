@@ -38,47 +38,73 @@ define([
                 }
             }
 
+            /**
+             * Detecta si un item esta "ready" (cargado, listo para mostrar).
+             * Re-queries los child elements en cada call — asi sobrevive
+             * mutations del DOM hechas por plugins WebP (MageFan mfwebp,
+             * Yireo WebP2) que reemplazan `<img>` por `<picture><source><img>`
+             * DESPUES de DOMContentLoaded. Si el plugin reemplaza el img
+             * ya con el listener attachado, el listener queda huerfano
+             * pero el poll siguiente encuentra el NUEVO img y verifica
+             * `img.complete && naturalWidth > 0` directamente.
+             *
+             * Uses `naturalWidth > 0` as primary check because `complete`
+             * can return true with 0x0 dimensions in edge cases (pending
+             * fetch, broken src, race conditions con picture/srcset).
+             */
+            function isItemReady($item) {
+                var $video = $item.find('video').first();
+                if ($video.length) {
+                    return $video[0].readyState >= 2;
+                }
+                var $facade = $item.find('.rp-video-facade');
+                if ($facade.length) {
+                    return true; // facade loads instantly (CSS background)
+                }
+                var $img = $item.find('img').first();
+                if ($img.length) {
+                    var img = $img[0];
+                    return img.complete && img.naturalWidth > 0;
+                }
+                return true; // nothing to wait for
+            }
+
+            // Immediate pass: cached content marca rp-loaded sincrono.
             $items.each(function () {
                 var $item = $(this);
-                var $video = $item.find('video');
-                var $img = $item.find('img');
-                var $facade = $item.find('.rp-video-facade');
-
-                if ($video.length) {
-                    // Video item: listen for video-specific load events
-                    var video = $video[0];
-                    $video.on('loadeddata.rpshimmer canplay.rpshimmer error.rpshimmer', function () {
-                        markLoaded($item);
-                    });
-                    if (video.readyState >= 2) {
-                        markLoaded($item);
-                    }
-                } else if ($facade.length) {
-                    // External video facade: loaded immediately (thumbnail is CSS background)
-                    markLoaded($item);
-                } else if ($img.length) {
-                    var img = $img[0];
-
-                    // Listen for load/error regardless (handles lazy-loaded images)
-                    $img.on('load.rpshimmer error.rpshimmer', function () {
-                        markLoaded($item);
-                    });
-
-                    // Already loaded (from cache or fast load)
-                    if (img.complete) {
-                        markLoaded($item);
-                    }
-                } else {
+                if (isItemReady($item)) {
                     markLoaded($item);
                 }
             });
 
-            // Safety fallback: reveal all after 4 seconds no matter what
-            setTimeout(function () {
-                $items.each(function () {
-                    markLoaded($(this));
+            // Polling fallback — checkea cada 100ms hasta 4s. No dependemos
+            // del `load` event porque bajo ciertas condiciones (picture +
+            // source webp + lazy loading + plugin DOM mutation) el event
+            // puede perderse o no dispararse. Polling via `img.complete`
+            // es el single source of truth del browser sobre el estado
+            // real del resource.
+            var startTime = Date.now();
+            var pollInterval = setInterval(function () {
+                var $pending = $items.filter(':not(.rp-loaded)');
+
+                $pending.each(function () {
+                    var $item = $(this);
+                    if (isItemReady($item)) {
+                        markLoaded($item);
+                    }
                 });
-            }, 4000);
+
+                // Stop si todos loaded O timeout 4s.
+                var elapsed = Date.now() - startTime;
+                if ($pending.length === 0 || elapsed >= 4000) {
+                    clearInterval(pollInterval);
+                    // Safety final: forzar todos a loaded pase lo que pase.
+                    // El class check en markLoaded() previene re-trigger.
+                    $items.each(function () {
+                        markLoaded($(this));
+                    });
+                }
+            }, 100);
         }
 
         // =========================================
