@@ -24,9 +24,12 @@
  *
  * The mixin is only activated when the admin flag
  *   rollpix_gallery/configurable/swatch_gallery_switch_enabled
- * is "Yes" AND `Rollpix_ConfigurableGallery` is not installed. The
- * template sets `window.rpSwatchGallerySwitchEnabled` inline when both
- * conditions are met; otherwise this mixin is a no-op pass-through.
+ * is "Yes". The template sets `window.rpSwatchGallerySwitchEnabled`
+ * inline on configurable PDPs when that flag is on; otherwise this
+ * mixin is a no-op pass-through. Rollpix_ProductGallery and
+ * Rollpix_ConfigurableGallery are designed to coexist — if both
+ * modules are installed, the merchant chooses which bridge is active
+ * via this admin flag.
  *
  * @category  Rollpix
  * @package   Rollpix_ProductGallery

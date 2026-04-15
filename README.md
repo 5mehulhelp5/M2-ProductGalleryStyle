@@ -92,7 +92,7 @@ A modern, editorial-style product gallery module for Magento 2 that replaces the
 - **Shimmer-aware**: fires a `rollpix:gallery:dom_replaced` event so the shimmer effect re-detects the new items and does not get stuck.
 - **XSS-safe**: new items are built with the DOM API, not string concatenation.
 - **WebP-defensive**: preserves the `<picture class="mfwebp">` wrapper when present.
-- **Soft-dep auto-disable**: if the full-feature `Rollpix_ConfigurableGallery` module is installed, this light-mode bridge turns itself off to avoid racing on the same DOM.
+- **Coexists with `Rollpix_ConfigurableGallery`**: both modules can be installed together. The light-mode bridge is gated entirely by the admin flag, so if the full-feature companion module is installed, simply leave this flag off and its richer bridge handles swatch changes instead.
 - **Known limitations**: Zoom / Slider / Thumbnail / Sticky widgets are NOT re-initialized on the new variant images. Videos are skipped on variants. Light mode is designed for stack layouts (Vertical / Grid / Fashion) with Zoom set to Lightbox / Modal Zoom / Disabled. For full support, install `Rollpix_ConfigurableGallery`.
 
 ### Performance
@@ -508,8 +508,11 @@ Contributions are welcome! Please follow these steps:
 
 ## Changelog
 
+### 1.8.1 (2026-04-14)
+- **Fix: remove `Rollpix_ConfigurableGallery` `class_exists` soft-dep** from `ViewModel::isSwatchGallerySwitchEnabled()`. The auto-deactivation was incorrect — the two modules are designed to coexist, and the admin flag is now the only gate. Merchants who install both modules should leave this flag off so only one bridge runs, but the choice is explicit.
+
 ### 1.8.0 (2026-04-14)
-- **Swatch → Gallery image switch (light mode)** for configurable products: new opt-in admin flag `Configurable Products → Swatch Gallery Image Switch (Light Mode)` that hooks into `Magento_Swatches/js/swatch-renderer` via mixin and rebuilds `.rp-gallery-images` with the selected child SKU's photos from `jsonConfig.images`. Fires a `rollpix:gallery:dom_replaced` jQuery event so `gallery-effects.js::initShimmer` can re-run on the new items. DOM is built with the native API (not string concat) to avoid XSS on untrusted image URLs; `loading="lazy"` applied; `<picture class="mfwebp">` wrapper preserved for MageFan WebP sites. Soft-dep on `Rollpix_ConfigurableGallery` (if the larger module is installed, the light-mode bridge auto-disables). **Known limitations**: Zoom / Slider / Thumbnail / Sticky widgets are not re-initialized on the new DOM; videos are skipped on variants; variant images may serve non-WebP under MageFan/Yireo WebP plugins. For full support, install `Rollpix_ConfigurableGallery`.
+- **Swatch → Gallery image switch (light mode)** for configurable products: new opt-in admin flag `Configurable Products → Swatch Gallery Image Switch (Light Mode)` that hooks into `Magento_Swatches/js/swatch-renderer` via mixin and rebuilds `.rp-gallery-images` with the selected child SKU's photos from `jsonConfig.images`. Fires a `rollpix:gallery:dom_replaced` jQuery event so `gallery-effects.js::initShimmer` can re-run on the new items. DOM is built with the native API (not string concat) to avoid XSS on untrusted image URLs; `loading="lazy"` applied; `<picture class="mfwebp">` wrapper preserved for MageFan WebP sites. **Known limitations**: Zoom / Slider / Thumbnail / Sticky widgets are not re-initialized on the new DOM; videos are skipped on variants; variant images may serve non-WebP under MageFan/Yireo WebP plugins. For full support, install `Rollpix_ConfigurableGallery`.
 - New files: `view/frontend/web/js/swatch-gallery-bridge.js`
 - Modified files: `view/frontend/web/js/gallery-effects.js`, `view/frontend/requirejs-config.js`, `view/frontend/templates/product/view/gallery-vertical.phtml`, `etc/adminhtml/system.xml`, `etc/config.xml`, `Model/Config.php`, `ViewModel/GalleryConfig.php`
 

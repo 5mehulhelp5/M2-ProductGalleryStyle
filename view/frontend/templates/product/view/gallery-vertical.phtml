@@ -179,9 +179,9 @@ $gridImageColumns = $columnCss['gridImageColumns'] ?? 2;
 <script>
     // Light-mode swatch → gallery image switch. Opt-in flag read by
     // Rollpix_ProductGallery/js/swatch-gallery-bridge (mixin on
-    // Magento_Swatches/js/swatch-renderer). The flag is only emitted
-    // when the admin setting is on AND Rollpix_ConfigurableGallery is
-    // not installed (handled in ViewModel::isSwatchGallerySwitchEnabled).
+    // Magento_Swatches/js/swatch-renderer). Emitted when the admin
+    // setting `rollpix_gallery/configurable/swatch_gallery_switch_enabled`
+    // is set to Yes (default No). Coexists with Rollpix_ConfigurableGallery.
     window.rpSwatchGallerySwitchEnabled = true;
 </script>
 <?php endif; ?>

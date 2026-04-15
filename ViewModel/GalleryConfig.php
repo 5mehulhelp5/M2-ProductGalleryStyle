@@ -246,24 +246,16 @@ class GalleryConfig implements ArgumentInterface
     /**
      * Whether the "light mode" swatch → gallery image switch is enabled.
      *
-     * The flag is admin-gated (default off). When the richer
-     * `Rollpix_ConfigurableGallery` module is installed, the light-mode
-     * bridge automatically deactivates itself so both modules don't race.
+     * Admin-gated (default off). The light-mode bridge is designed to
+     * coexist with the full-feature `Rollpix_ConfigurableGallery` sibling
+     * module: both can be installed together. If the richer module is
+     * present and its own bridge takes precedence, this flag can simply
+     * be left off from the admin — we do not auto-deactivate here so
+     * that merchants keep explicit control over which bridge runs.
      */
     public function isSwatchGallerySwitchEnabled(): bool
     {
-        if (!$this->config->isSwatchGallerySwitchEnabled()) {
-            return false;
-        }
-
-        // Soft-dep: full-feature module takes over if installed.
-        if (class_exists('Rollpix\\ConfigurableGallery\\Model\\Config', false)
-            || class_exists('Rollpix\\ConfigurableGallery\\ViewModel\\GalleryConfig', false)
-        ) {
-            return false;
-        }
-
-        return true;
+        return $this->config->isSwatchGallerySwitchEnabled();
     }
 
     /**

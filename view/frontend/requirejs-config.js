@@ -32,10 +32,9 @@ var config = {
             // Light-mode bridge between swatches and the Rollpix gallery
             // on configurable product PDPs. The mixin itself is a no-op
             // unless `window.rpSwatchGallerySwitchEnabled` is set, which
-            // only happens when the admin flag is on AND the heavier
-            // Rollpix_ConfigurableGallery module is not installed. See
-            // view/frontend/web/js/swatch-gallery-bridge.js and
-            // view/frontend/templates/product/view/gallery-vertical.phtml.
+            // is emitted inline by gallery-vertical.phtml when the admin
+            // flag `rollpix_gallery/configurable/swatch_gallery_switch_enabled`
+            // is Yes. Coexists with Rollpix_ConfigurableGallery.
             'Magento_Swatches/js/swatch-renderer': {
                 'Rollpix_ProductGallery/js/swatch-gallery-bridge': true
             }

@@ -750,7 +750,7 @@
                             <li>If the site uses the MageFan WebP plugin (<code>mfwebp</code>) or Yireo WebP2, variant images may be served as non-WebP originals (the <code>&lt;picture&gt;</code> wrapper is not regenerated for the new variant's URLs).</li>
                             <li>Slider / thumbnail / sticky widgets bound to the original DOM are <strong>not</strong> re-initialized for the new images and may behave unexpectedly after a swatch change.</li>
                         </ul>
-                        <strong>For full support</strong> (with proper widget teardown, WebP regeneration and video variants) install <a href="https://github.com/ROLLPIX/M2-ConfigurableGallery" target="_blank"><code>Rollpix_ConfigurableGallery</code></a> — when that module is installed this light-mode bridge automatically deactivates itself.
+                        <strong>For full support</strong> (with proper widget teardown, WebP regeneration and video variants) install the companion module <a href="https://github.com/ROLLPIX/M2-ConfigurableGallery" target="_blank"><code>Rollpix_ConfigurableGallery</code></a>. Both modules can coexist — if you install the full-feature module, set this flag to <strong>No</strong> so only one bridge handles swatch changes at a time.
                     ]]></comment>
                     <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
                 </field>

@@ -1,3 +1,15 @@
+## What's New in 1.8.1
+
+### Fixed — `Rollpix_ConfigurableGallery` soft-dep was disabling the feature incorrectly
+
+`ViewModel::isSwatchGallerySwitchEnabled()` was checking `class_exists('Rollpix\\ConfigurableGallery\\...')` and auto-returning `false` when the companion module was installed. That behavior was wrong: the two modules are designed to **coexist** (they can both be installed in the same Magento instance) and merchants need explicit control over which bridge handles swatch changes. Some Composer autoload configurations can also return `true` for `class_exists()` as a false positive even when the module isn't really active, which silently suppresses the light-mode bridge.
+
+**Fix**: the soft-dep check is removed. The admin flag `rollpix_gallery/configurable/swatch_gallery_switch_enabled` is now the *only* gate. If you install both `Rollpix_ProductGallery` and `Rollpix_ConfigurableGallery`, simply leave this flag **off** so the richer module handles the swatch → gallery bridge; otherwise turn it **on** to get the light-mode bridge.
+
+No behavior change for merchants who only have `Rollpix_ProductGallery` installed and had the flag turned on — for them, v1.8.0 was already working. This release only matters if (a) you have both modules installed, or (b) your PHP autoload happened to trip the `class_exists` false positive.
+
+---
+
 ## What's New in 1.8.0
 
 ### New — Swatch → Gallery Image Switch (Light Mode) for Configurable Products
