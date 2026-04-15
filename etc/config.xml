@@ -75,6 +75,10 @@
                 <inline_enabled>0</inline_enabled>
                 <description_max_height>200</description_max_height>
             </tabs>
+            <!-- Configurable Product Settings -->
+            <configurable>
+                <swatch_gallery_switch_enabled>0</swatch_gallery_switch_enabled>
+            </configurable>
         </rollpix_gallery>
     </default>
 </config>

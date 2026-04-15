@@ -244,6 +244,29 @@ class GalleryConfig implements ArgumentInterface
     }
 
     /**
+     * Whether the "light mode" swatch → gallery image switch is enabled.
+     *
+     * The flag is admin-gated (default off). When the richer
+     * `Rollpix_ConfigurableGallery` module is installed, the light-mode
+     * bridge automatically deactivates itself so both modules don't race.
+     */
+    public function isSwatchGallerySwitchEnabled(): bool
+    {
+        if (!$this->config->isSwatchGallerySwitchEnabled()) {
+            return false;
+        }
+
+        // Soft-dep: full-feature module takes over if installed.
+        if (class_exists('Rollpix\\ConfigurableGallery\\Model\\Config', false)
+            || class_exists('Rollpix\\ConfigurableGallery\\ViewModel\\GalleryConfig', false)
+        ) {
+            return false;
+        }
+
+        return true;
+    }
+
+    /**
      * Check if a provider is an external video (YouTube/Vimeo)
      */
     public function isExternalVideo(string $provider): bool

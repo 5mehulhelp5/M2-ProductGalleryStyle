@@ -86,6 +86,15 @@ A modern, editorial-style product gallery module for Magento 2 that replaces the
 - **Shimmer for All Images**: Animated shimmer loading placeholder for all listing images (not just videos)
 - **Batch Loading**: Video data loaded per-collection (one query per page, not per product)
 
+### Configurable Variant Image Switch (Light Mode, Opt-In)
+- **Swatch → Gallery bridge**: on a configurable product PDP, selecting a swatch option (e.g. color) replaces the gallery images with the photos assigned to the matching child SKU. Implemented as a mixin over `Magento_Swatches/js/swatch-renderer` reading `jsonConfig.images[productId]`.
+- **Opt-in**: disabled by default. Enable under `Stores → Configuration → Rollpix → Product Gallery → Configurable Products → Swatch Gallery Image Switch (Light Mode)`.
+- **Shimmer-aware**: fires a `rollpix:gallery:dom_replaced` event so the shimmer effect re-detects the new items and does not get stuck.
+- **XSS-safe**: new items are built with the DOM API, not string concatenation.
+- **WebP-defensive**: preserves the `<picture class="mfwebp">` wrapper when present.
+- **Soft-dep auto-disable**: if the full-feature `Rollpix_ConfigurableGallery` module is installed, this light-mode bridge turns itself off to avoid racing on the same DOM.
+- **Known limitations**: Zoom / Slider / Thumbnail / Sticky widgets are NOT re-initialized on the new variant images. Videos are skipped on variants. Light mode is designed for stack layouts (Vertical / Grid / Fashion) with Zoom set to Lightbox / Modal Zoom / Disabled. For full support, install `Rollpix_ConfigurableGallery`.
+
 ### Performance
 - **Lazy Loading**: Native lazy loading for images; IntersectionObserver for videos
 - **Lightweight**: No heavy dependencies, GLightbox is only ~2KB gzipped
@@ -498,6 +507,14 @@ Contributions are welcome! Please follow these steps:
 - [ ] Integration with PageBuilder
 
 ## Changelog
+
+### 1.8.0 (2026-04-14)
+- **Swatch → Gallery image switch (light mode)** for configurable products: new opt-in admin flag `Configurable Products → Swatch Gallery Image Switch (Light Mode)` that hooks into `Magento_Swatches/js/swatch-renderer` via mixin and rebuilds `.rp-gallery-images` with the selected child SKU's photos from `jsonConfig.images`. Fires a `rollpix:gallery:dom_replaced` jQuery event so `gallery-effects.js::initShimmer` can re-run on the new items. DOM is built with the native API (not string concat) to avoid XSS on untrusted image URLs; `loading="lazy"` applied; `<picture class="mfwebp">` wrapper preserved for MageFan WebP sites. Soft-dep on `Rollpix_ConfigurableGallery` (if the larger module is installed, the light-mode bridge auto-disables). **Known limitations**: Zoom / Slider / Thumbnail / Sticky widgets are not re-initialized on the new DOM; videos are skipped on variants; variant images may serve non-WebP under MageFan/Yireo WebP plugins. For full support, install `Rollpix_ConfigurableGallery`.
+- New files: `view/frontend/web/js/swatch-gallery-bridge.js`
+- Modified files: `view/frontend/web/js/gallery-effects.js`, `view/frontend/requirejs-config.js`, `view/frontend/templates/product/view/gallery-vertical.phtml`, `etc/adminhtml/system.xml`, `etc/config.xml`, `Model/Config.php`, `ViewModel/GalleryConfig.php`
+
+### 1.7.8 (2026-03-06)
+- **Shimmer loading effect stuck on images wrapped by WebP plugins**: rewrote `initShimmer()` to use polling-based detection (`img.complete && naturalWidth > 0`) instead of jQuery `load` event listeners, so DOM mutations by MageFan `mfwebp` / Yireo WebP2 no longer leave orphaned listeners and stuck shimmer placeholders. Cached images resolve synchronously; polling auto-stops when all items load or after 4s. See `RELEASE_NOTES.md` for the full diagnosis.
 
 ### 1.7.2 (2026-03-02)
 - **Video support on product pages (PDP)**: Inline HTML5 `<video>` for local MP4 files; embedded YouTube and Vimeo with thumbnail facade, lazy-loaded iframe, and IntersectionObserver play/pause via postMessage

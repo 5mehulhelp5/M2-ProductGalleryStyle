@@ -58,6 +58,7 @@ class Config
     private const XML_PATH_VIDEO_LISTING_PLAYER_SIZE = 'rollpix_gallery/video/listing_player_size';
     private const XML_PATH_VIDEO_LISTING_VIDEO_FIT = 'rollpix_gallery/video/listing_video_fit';
     private const XML_PATH_VIDEO_MAX_SIZE = 'rollpix_gallery/video/max_size';
+    private const XML_PATH_CONFIGURABLE_SWATCH_GALLERY_SWITCH = 'rollpix_gallery/configurable/swatch_gallery_switch_enabled';
 
     private ScopeConfigInterface $scopeConfig;
 
@@ -451,6 +452,15 @@ class Config
             ScopeInterface::SCOPE_STORE,
             $storeId
         ) ?: 20;
+    }
+
+    public function isSwatchGallerySwitchEnabled(?int $storeId = null): bool
+    {
+        return $this->scopeConfig->isSetFlag(
+            self::XML_PATH_CONFIGURABLE_SWATCH_GALLERY_SWITCH,
+            ScopeInterface::SCOPE_STORE,
+            $storeId
+        );
     }
 
     /**

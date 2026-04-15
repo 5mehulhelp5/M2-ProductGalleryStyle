@@ -28,6 +28,16 @@ var config = {
             },
             'Magento_ProductVideo/js/fotorama-add-video-events': {
                 'Rollpix_ProductGallery/js/fotorama-add-video-events-mixin': true
+            },
+            // Light-mode bridge between swatches and the Rollpix gallery
+            // on configurable product PDPs. The mixin itself is a no-op
+            // unless `window.rpSwatchGallerySwitchEnabled` is set, which
+            // only happens when the admin flag is on AND the heavier
+            // Rollpix_ConfigurableGallery module is not installed. See
+            // view/frontend/web/js/swatch-gallery-bridge.js and
+            // view/frontend/templates/product/view/gallery-vertical.phtml.
+            'Magento_Swatches/js/swatch-renderer': {
+                'Rollpix_ProductGallery/js/swatch-gallery-bridge': true
             }
         }
     }

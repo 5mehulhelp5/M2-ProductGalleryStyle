@@ -27,6 +27,16 @@ define([
         // =========================================
         if (effects.shimmerEnabled) {
             initShimmer();
+
+            // Re-run shimmer detection when another component (e.g. the
+            // swatch-gallery-bridge on configurable PDPs) replaces the
+            // gallery images with a different variant's photos. The new
+            // items are injected without the `rp-loaded` class, so without
+            // re-running the poll they would inherit the CSS shimmer
+            // animation forever.
+            $gallery.on('rollpix:gallery:dom_replaced.rpshimmer', function () {
+                initShimmer();
+            });
         }
 
         function initShimmer() {

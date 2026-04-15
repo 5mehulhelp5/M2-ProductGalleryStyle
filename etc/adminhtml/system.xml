@@ -722,6 +722,40 @@
                 </field>
             </group>
 
+            <!-- Configurable Products Group -->
+            <group id="configurable"
+                   translate="label"
+                   type="text"
+                   sortOrder="95"
+                   showInDefault="1"
+                   showInWebsite="1"
+                   showInStore="1">
+                <label>Configurable Products</label>
+
+                <field id="swatch_gallery_switch_enabled"
+                       translate="label comment"
+                       type="select"
+                       sortOrder="10"
+                       showInDefault="1"
+                       showInWebsite="1"
+                       showInStore="1">
+                    <label>Swatch Gallery Image Switch (Light Mode)</label>
+                    <comment><![CDATA[
+                        <strong>Light mode:</strong> Replaces the gallery images when the customer selects a different swatch option on a configurable product's PDP.
+                        <br/><br/>
+                        <strong>LIMITED FEATURE — known limitations:</strong>
+                        <ul style="margin-left:18px;list-style:disc">
+                            <li>Incompatible with the hover/click zoom widgets — zoom state will not re-initialize on the new variant images. Recommended: disable Zoom or set Zoom Type to "Lightbox" / "Modal Zoom" on configurable PDPs.</li>
+                            <li>Videos are not shown on variants (only still images are switched).</li>
+                            <li>If the site uses the MageFan WebP plugin (<code>mfwebp</code>) or Yireo WebP2, variant images may be served as non-WebP originals (the <code>&lt;picture&gt;</code> wrapper is not regenerated for the new variant's URLs).</li>
+                            <li>Slider / thumbnail / sticky widgets bound to the original DOM are <strong>not</strong> re-initialized for the new images and may behave unexpectedly after a swatch change.</li>
+                        </ul>
+                        <strong>For full support</strong> (with proper widget teardown, WebP regeneration and video variants) install <a href="https://github.com/ROLLPIX/M2-ConfigurableGallery" target="_blank"><code>Rollpix_ConfigurableGallery</code></a> — when that module is installed this light-mode bridge automatically deactivates itself.
+                    ]]></comment>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                </field>
+            </group>
+
             <!-- Module Info Group -->
             <group id="info"
                    translate="label"

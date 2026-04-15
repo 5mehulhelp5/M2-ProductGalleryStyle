@@ -175,6 +175,17 @@ $gridImageColumns = $columnCss['gridImageColumns'] ?? 2;
     }
 </style>
 
+<?php if ($product->getTypeId() === 'configurable' && $galleryConfig->isSwatchGallerySwitchEnabled()): ?>
+<script>
+    // Light-mode swatch → gallery image switch. Opt-in flag read by
+    // Rollpix_ProductGallery/js/swatch-gallery-bridge (mixin on
+    // Magento_Swatches/js/swatch-renderer). The flag is only emitted
+    // when the admin setting is on AND Rollpix_ConfigurableGallery is
+    // not installed (handled in ViewModel::isSwatchGallerySwitchEnabled).
+    window.rpSwatchGallerySwitchEnabled = true;
+</script>
+<?php endif; ?>
+
 <div class="<?= $block->escapeHtmlAttr(implode(' ', $wrapperClasses)) ?>"
      data-role="rp-gallery"
      data-mage-init='{"rpGalleryZoom": <?= /* @noEscape */ $jsConfig ?>, "rpGalleryCarousel": <?= /* @noEscape */ $jsConfig ?>, "rpGalleryTabs": <?= /* @noEscape */ $jsConfig ?>, "rpGalleryEffects": <?= /* @noEscape */ $jsConfig ?>, "rpGalleryThumbnails": <?= /* @noEscape */ $jsConfig ?>, "rpGallerySlider": <?= /* @noEscape */ $jsConfig ?>, "rpGalleryModalZoom": <?= /* @noEscape */ $jsConfig ?>, "rpGalleryCarouselZoom": <?= /* @noEscape */ $jsConfig ?>, "rpGalleryVideo": <?= /* @noEscape */ $jsConfig ?>}'>
