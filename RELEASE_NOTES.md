@@ -1,3 +1,15 @@
+## What's New in 1.8.2
+
+### Fixed — Mobile carousel was clipping the bottom ~90px of every image
+
+In v1.7.x a `margin-top: -90px` was added to `.product-info-main` in the mobile `@media (max-width: 767px)` block to close an excessive whitespace gap between the carousel image and the product title. The side effect: the product-info panel (with `z-index: 2` and white `background`) permanently overlapped the bottom 90px of whatever image was currently showing in the carousel — not as an on-scroll overlay, but as a static crop. On tall/landscape product photos this was obvious; you could see the bike frame / shoe / bottle visibly cut off below the middle even before the user touched the page.
+
+**Fix**: the negative margin is removed (`margin-top: 0`). The sticky-scroll behavior of the gallery column still works — as the user scrolls, the info panel rises over the gallery naturally — but images are no longer pre-cropped at rest.
+
+If after this update a small whitespace gap reappears between the carousel and the title on your theme, it means the theme is adding a `margin` on `.product-info-main` or a `padding` on the gallery wrapper that was previously being absorbed by the `-90px`. In that case, override from the theme (e.g. `@media (max-width: 767px) { .rp-product-wrapper .product-info-main { margin-top: -20px; } }`) rather than re-clipping the image globally.
+
+---
+
 ## What's New in 1.8.1
 
 ### Fixed — `Rollpix_ConfigurableGallery` soft-dep was disabling the feature incorrectly
