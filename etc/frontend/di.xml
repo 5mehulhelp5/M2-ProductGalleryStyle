@@ -22,4 +22,10 @@
                 type="Rollpix\ProductGallery\Plugin\Catalog\Block\Product\ImageFactoryPlugin"/>
     </type>
 
+    <!-- Batch-load video data for listing products AFTER toolbar applied pageSize -->
+    <type name="Magento\Catalog\Block\Product\ListProduct">
+        <plugin name="rollpix_listing_add_video_data"
+                type="Rollpix\ProductGallery\Plugin\Catalog\Block\Product\ListProduct\AddVideoDataPlugin"/>
+    </type>
+
 </config>
