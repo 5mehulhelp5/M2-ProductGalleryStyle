@@ -1188,6 +1188,13 @@
     display: flex;
     transition: transform 0.3s ease;
     touch-action: pan-y pinch-zoom;
+    /* iOS Safari: hint a compositor layer so horizontal touchmove events
+       on the sticky parent reach this element reliably. Without this the
+       second swipe onwards silently fails on real iOS hardware (works in
+       Chrome devtools mobile mode). Pair with translate3d in JS. */
+    will-change: transform;
+    backface-visibility: hidden;
+    -webkit-backface-visibility: hidden;
 }
 
 .rp-carousel-slide {

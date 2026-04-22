@@ -55,6 +55,18 @@ define([
             $gallery.find('.rp-gallery-images').addClass('rp-carousel-wrapper');
             $wrapper = $gallery.find('.rp-carousel-wrapper');
 
+            // Unwrap items from any rp-zoom-wrapper (hover-zoom init runs
+            // first on mobile and leaves an empty wrapper as a sibling of
+            // the track once items are moved — that sibling sits in the
+            // flex-column wrapper and pushes the track down by the gap).
+            $items.each(function () {
+                var $parent = $(this).parent();
+                if ($parent.hasClass('rp-zoom-wrapper')) {
+                    $parent.before(this);
+                }
+            });
+            $wrapper.find('.rp-zoom-wrapper').remove();
+
             // Create track
             $track = $('<div class="rp-carousel-track"></div>');
             $items.appendTo($track);
@@ -74,15 +86,15 @@ define([
             $items.addClass('rp-carousel-slide');
             updateCarousel();
 
-            // Touch events
+            // Touch events. touchcancel is required on iOS — the OS
+            // cancels a touch when a system gesture takes over (address bar
+            // show/hide on scroll, edge-swipe back, incoming notification).
+            // Without it, isDragging stays true and transition stays 'none',
+            // so the next swipe silently fails.
             $track[0].addEventListener('touchstart', onTouchStart, { passive: true });
             $track[0].addEventListener('touchmove', onTouchMove, { passive: false });
             $track[0].addEventListener('touchend', onTouchEnd, { passive: true });
-
-            // Mouse events for desktop testing
-            $track.on('mousedown', onMouseDown);
-            $(document).on('mousemove.rpCarousel', onMouseMove);
-            $(document).on('mouseup.rpCarousel', onMouseUp);
+            $track[0].addEventListener('touchcancel', onTouchCancel, { passive: true });
 
             isCarouselInitialized = true;
             $gallery.addClass('rp-carousel-active');
@@ -105,9 +117,6 @@ define([
             // Remove classes and reset height
             $wrapper.removeClass('rp-carousel-wrapper').css('height', '');
             $gallery.removeClass('rp-carousel-active');
-
-            // Remove events
-            $(document).off('.rpCarousel');
 
             isCarouselInitialized = false;
             currentIndex = 0;
@@ -158,7 +167,12 @@ define([
             var slideWidth = $wrapper.width();
             var translateX = -(currentIndex * slideWidth);
 
-            $track.css('transform', 'translateX(' + translateX + 'px)');
+            // translate3d (not translateX) pairs with the will-change +
+            // backface-visibility declaration on .rp-carousel-track to keep
+            // the track on its own compositor layer — required for iOS
+            // Safari to keep routing horizontal touchmove events to us once
+            // the gallery is sticky.
+            $track.css('transform', 'translate3d(' + translateX + 'px, 0, 0)');
 
             // Adjust wrapper height to match current slide (prevents blank space)
             var $currentSlide = $items.eq(currentIndex);
@@ -220,6 +234,10 @@ define([
         function onTouchStart(e) {
             startX = e.touches[0].clientX;
             startY = e.touches[0].clientY;
+            // Seed currentX so a tap (no touchmove) computes diffX=0 on
+            // touchend instead of reusing the previous swipe's endpoint,
+            // which would otherwise trigger a spurious next/prev.
+            currentX = startX;
             isDragging = true;
             $track.css('transition', 'none');
         }
@@ -241,7 +259,7 @@ define([
 
             var slideWidth = $wrapper.width();
             var baseTranslate = -(currentIndex * slideWidth);
-            $track.css('transform', 'translateX(' + (baseTranslate + diffX) + 'px)');
+            $track.css('transform', 'translate3d(' + (baseTranslate + diffX) + 'px, 0, 0)');
         }
 
         function onTouchEnd(e) {
@@ -263,41 +281,11 @@ define([
             }
         }
 
-        // Mouse handlers (for desktop testing)
-        function onMouseDown(e) {
-            startX = e.clientX;
-            isDragging = true;
-            $track.css('transition', 'none');
-            e.preventDefault();
-        }
-
-        function onMouseMove(e) {
-            if (!isDragging) return;
-
-            currentX = e.clientX;
-            var diffX = currentX - startX;
-            var slideWidth = $wrapper.width();
-            var baseTranslate = -(currentIndex * slideWidth);
-            $track.css('transform', 'translateX(' + (baseTranslate + diffX) + 'px)');
-        }
-
-        function onMouseUp(e) {
+        function onTouchCancel(e) {
             if (!isDragging) return;
             isDragging = false;
-
             $track.css('transition', 'transform 0.3s ease');
-
-            var diffX = currentX - startX;
-
-            if (Math.abs(diffX) > threshold) {
-                if (diffX > 0) {
-                    prevSlide();
-                } else {
-                    nextSlide();
-                }
-            } else {
-                updateCarousel();
-            }
+            updateCarousel();
         }
 
         // Utility

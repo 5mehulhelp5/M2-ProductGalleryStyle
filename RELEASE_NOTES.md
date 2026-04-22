@@ -1,3 +1,32 @@
+## What's New in 1.8.5
+
+### Fixed — Mobile carousel got stuck on the second photo on real iOS devices
+
+Reproducible on iPhone Safari (not in Chrome devtools "mobile mode" emulation): after the first successful left-swipe to photo 2, subsequent swipes on the sticky gallery silently failed — the user could not advance further nor return to photo 1.
+
+Three independent problems were compounding:
+
+1. **`touchcancel` was unhandled.** On real iOS the OS cancels in-flight touches whenever a system gesture takes over (address-bar show/hide on scroll, edge-swipe-back, notification). That cancellation fired `touchcancel` instead of `touchend`, so `isDragging` stayed `true` and the track's transition stayed `none` forever. The next swipe's `touchend` still ran, but every swipe after that one inherited broken state from whatever half-finished gesture triggered the cancel.
+
+2. **`currentX` wasn't reset on `touchstart`.** A tap with no movement (common when a user puts their finger down to start a new swipe after the first) computed `diffX = currentX - startX` using the *previous* swipe's endpoint, occasionally firing a spurious `nextSlide()` / `prevSlide()` that the user never asked for.
+
+3. **No compositor-layer hint on `.rp-carousel-track`.** With `position: sticky` on the gallery parent, iOS Safari stops routing horizontal `touchmove` events to a non-composited descendant once the sticky threshold is crossed — a known WebKit quirk. The track needs its own layer for touch events to keep landing on it.
+
+**Fix** (combined):
+- `gallery-carousel.js`: added `touchcancel` handler that resets `isDragging` and the track's transition without firing navigation; seed `currentX = startX` inside `onTouchStart`; switched transforms from `translateX(…)` to `translate3d(…, 0, 0)` so the composited layer is actually used.
+- `gallery-vertical.css`: added `will-change: transform; backface-visibility: hidden` to `.rp-carousel-track` to promote it to its own layer on iOS.
+- Also removed the `mousedown` / `mousemove` / `mouseup` handlers that were registered "for desktop testing" — they served no production purpose and could fire via iOS's synthetic mouse-event emulation, re-entering swipe state mid-touch.
+
+Secondary bug caught during the investigation and fixed alongside:
+
+**Zoom-hover wrappers were orphaned inside the carousel wrapper.** `gallery-zoom.js` declares `domReady!` and wraps each `.rp-gallery-item` in a `.rp-zoom-wrapper` during init. `gallery-carousel.js` has no such dependency, so when both widgets ran on a configurable / hover-zoom PDP the items were first wrapped, then moved out of those wrappers into `.rp-carousel-track` by the carousel — leaving two empty `.rp-zoom-wrapper` divs as siblings of the track inside the flex-column `.rp-carousel-wrapper`. With a `gap: 10px` between flex children, those empty siblings pushed the track ~20 px down inside its overflow-hidden wrapper, clipping the bottom of every slide. `initCarousel()` now unwraps items from any `rp-zoom-wrapper` ancestor and deletes the leftover empty wrappers before moving items into the track.
+
+#### Files
+- `view/frontend/web/js/gallery-carousel.js` — added `touchcancel` handler, seeded `currentX` on `touchstart`, switched to `translate3d`, removed unused mouse handlers, cleaned up orphan `rp-zoom-wrapper` siblings in `initCarousel()`.
+- `view/frontend/web/css/gallery-vertical.css` — added `will-change` + `backface-visibility` to `.rp-carousel-track`.
+
+---
+
 ## What's New in 1.8.4
 
 ### Fixed — Swatch gallery swapped the image on every attribute change, even when the admin flag said "No"
