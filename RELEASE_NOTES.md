@@ -1,3 +1,18 @@
+## What's New in 1.8.4
+
+### Fixed — Swatch gallery swapped the image on every attribute change, even when the admin flag said "No"
+
+In v1.8.0–1.8.3 the light-mode swatch bridge reloaded the gallery images on *any* swatch interaction and required a fully-selected combination before matching. On a configurable with two or more variable attributes (e.g. `color` + `talle`) that meant switching sizes also reloaded the photo — even when the admin had left `Update Product Preview Image` (the native Magento per-attribute flag, labelled in Spanish as "Actualiza la imagen de vista previa de producto") off for the size attribute.
+
+**Fix**: `swatch-gallery-bridge.js` now reads `update_product_preview_image` from each attribute's `additional_data` (where stock Magento's `Swatches\Helper\Data::assembleAdditionalDataEavAttribute` packs it) and only uses those attributes when resolving which child product's images to load. Sibling attributes flagged `No` — typical for size — are ignored by the matcher, so changing them keeps the currently-displayed image. A short-circuit on the last-synced child id also skips the DOM swap (and its shimmer flicker) when the resolved child is unchanged.
+
+The fix is transparent for legacy catalogs: if no attribute opts into preview updates (flag untouched everywhere), every attribute continues to count — matching the v1.8.0 behavior. The fix only activates when at least one attribute on the configurable explicitly has the native flag set to `Yes`.
+
+#### Files
+- `view/frontend/web/js/swatch-gallery-bridge.js` — added `_rpAttrUpdatesPreview()`, reworked `_rpMatchedProducts()`, added last-synced-child cache in `_rpSyncGallery()`
+
+---
+
 ## What's New in 1.8.2
 
 ### Fixed — Mobile carousel was clipping the bottom ~90px of every image

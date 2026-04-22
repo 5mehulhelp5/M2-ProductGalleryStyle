@@ -9,6 +9,13 @@
  * Fotorama, which this module replaces — this bridge fills that gap
  * without depending on the larger `Rollpix_ConfigurableGallery` module.
  *
+ * Matching respects Magento's per-attribute
+ * "Update Product Preview Image" flag (update_product_preview_image).
+ * On a configurable with e.g. color + size where only color has the
+ * flag on, switching size keeps the current image. If no attribute has
+ * the flag on (legacy catalogs), every attribute counts — preserving
+ * v1.8.0 behaviour.
+ *
  * ⚠ LIMITATIONS — see etc/adminhtml/system.xml (configurable group
  * comment) and README.md ("Configurable variant image switch") for the
  * full list. This is explicitly a *light* mode:
@@ -52,6 +59,9 @@ define(['jquery'], function ($) {
             /** Original gallery HTML, saved on first swatch interaction. */
             _rpOriginalItemsHtml: null,
 
+            /** Last child product id whose images were pushed into the gallery. */
+            _rpLastSyncedProductId: null,
+
             // ----------------------------------------------------------
             // Hooks: swatch click / change → sync gallery
             // ----------------------------------------------------------
@@ -89,10 +99,23 @@ define(['jquery'], function ($) {
 
                 if (!productIds) {
                     // No full selection yet → restore parent gallery.
-                    if ($container.html() !== this._rpOriginalItemsHtml) {
+                    if (this._rpLastSyncedProductId !== null) {
                         $container.html(this._rpOriginalItemsHtml);
+                        this._rpLastSyncedProductId = null;
                         this._rpFireDomReplaced($gallery);
                     }
+                    return;
+                }
+
+                var pid = productIds[0];
+
+                // Short-circuit when the resolved child hasn't changed.
+                // Matters when a non-preview-relevant attribute (e.g. size
+                // on a color+size configurable where only color has
+                // `update_product_preview_image` = Yes) is flipped —
+                // matcher returns the same child, so the DOM swap and its
+                // shimmer flicker are skipped.
+                if (this._rpLastSyncedProductId === pid) {
                     return;
                 }
 
@@ -101,32 +124,62 @@ define(['jquery'], function ($) {
                     return;
                 }
 
-                var images = jsonConfig.images[productIds[0]];
+                var images = jsonConfig.images[pid];
                 if (!images || !images.length) {
                     return;
                 }
 
+                this._rpLastSyncedProductId = pid;
                 this._rpRebuildGallery($gallery, $container, images);
             },
 
             // ----------------------------------------------------------
             // Walk the swatch UI and determine which child product(s)
-            // match every currently-selected attribute. Returns null if
-            // no option is selected or if the current selection is
-            // partial (e.g. color picked, size not picked).
+            // match every currently-selected *preview-relevant* attribute.
+            //
+            // "Preview-relevant" = attributes whose admin flag
+            // `update_product_preview_image` is set to Yes. On a
+            // configurable with e.g. color + size where only color opts
+            // into preview updates, picking a different size is expected
+            // to keep the current image — so size is ignored when
+            // computing the match.
+            //
+            // Backward-compat fallback: if NO attribute opts in (legacy
+            // catalogs where the merchant never touched the flag), every
+            // attribute counts — same as v1.8.0 behaviour.
+            //
+            // Returns null if no option is selected or if the current
+            // selection of preview-relevant attributes is partial.
             // ----------------------------------------------------------
             _rpMatchedProducts: function () {
                 var widget = this;
+                var jsonConfig = (this.options && this.options.jsonConfig) || {};
+                var jsonAttrs = jsonConfig.attributes || {};
+
+                var hasOptIn = false;
+                $.each(jsonAttrs, function (_, meta) {
+                    if (widget._rpAttrUpdatesPreview(meta)) {
+                        hasOptIn = true;
+                        return false;
+                    }
+                });
+
                 var selected = {};
-                var attrCount = 0;
+                var relevantCount = 0;
                 var selectedCount = 0;
 
                 this.element
                     .find('.' + this.options.classes.attributeClass)
                     .each(function () {
-                        attrCount++;
                         var $attr = $(this);
                         var attrId = $attr.data('attribute-id');
+                        var attrMeta = jsonAttrs[attrId] || {};
+
+                        if (hasOptIn && !widget._rpAttrUpdatesPreview(attrMeta)) {
+                            return;
+                        }
+
+                        relevantCount++;
                         var $opt = $attr.find(
                             '.' + widget.options.classes.optionClass + '.selected'
                         );
@@ -136,13 +189,11 @@ define(['jquery'], function ($) {
                         }
                     });
 
-                // Require a fully-selected combination — partial picks
-                // (one color, no size) shouldn't force a gallery flicker.
-                if (!attrCount || selectedCount < attrCount) {
+                if (!relevantCount || selectedCount < relevantCount) {
                     return null;
                 }
 
-                var index = (this.options.jsonConfig && this.options.jsonConfig.index) || {};
+                var index = jsonConfig.index || {};
                 var matches = [];
 
                 $.each(index, function (pid, attrs) {
@@ -159,6 +210,50 @@ define(['jquery'], function ($) {
                 });
 
                 return matches.length ? matches : null;
+            },
+
+            // ----------------------------------------------------------
+            // Read Magento's admin flag `update_product_preview_image`
+            // from the swatch jsonConfig.
+            //
+            // Stock Magento's Swatches helper packs the flag into the
+            // serialized `additional_data` field on save
+            // (Swatches\Helper\Data::assembleAdditionalDataEavAttribute)
+            // and never unpacks it back to a top-level key on load — so
+            // in jsonConfig.attributes[id] we usually find the flag only
+            // inside a JSON string at `additional_data`. We read the
+            // top-level key first as a defensive fallback (third-party
+            // customisations sometimes flatten it) and then parse
+            // `additional_data`.
+            //
+            // In Magento admin the checkbox is stored as "1" when on and
+            // is omitted entirely when off, so treat a missing key as No.
+            // ----------------------------------------------------------
+            _rpAttrUpdatesPreview: function (meta) {
+                if (!meta) {
+                    return false;
+                }
+
+                var direct = meta.update_product_preview_image;
+                if (direct === 1 || direct === '1' || direct === true) {
+                    return true;
+                }
+                if (direct === 0 || direct === '0' || direct === false) {
+                    return false;
+                }
+
+                var addl = meta.additional_data;
+                if (typeof addl === 'string' && addl.length) {
+                    try {
+                        var parsed = JSON.parse(addl);
+                        var flag = parsed && parsed.update_product_preview_image;
+                        return flag === 1 || flag === '1' || flag === true;
+                    } catch (e) {
+                        /* malformed — treat as no opt-in */
+                    }
+                }
+
+                return false;
             },
 
             // ----------------------------------------------------------
