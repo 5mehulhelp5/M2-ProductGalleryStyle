@@ -28,4 +28,15 @@
                 type="Rollpix\ProductGallery\Plugin\Catalog\Block\Product\ListProduct\AddVideoDataPlugin"/>
     </type>
 
+
+    <!-- Amasty_Label compatibility: register the Rollpix vertical gallery block
+         name so Amasty's afterToHtml plugin renders PDP labels for it -->
+    <type name="Amasty\Label\Plugin\Catalog\Product\View\Label">
+        <arguments>
+            <argument name="allowedNames" xsi:type="array">
+                <item name="rollpix_gallery_vertical" xsi:type="string">rollpix.product.gallery.vertical</item>
+            </argument>
+        </arguments>
+    </type>
+
 </config>
