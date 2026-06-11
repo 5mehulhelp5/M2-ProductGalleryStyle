@@ -4,6 +4,12 @@
  * Opens a modal overlay showing one image at a time with prev/next navigation.
  * Dark backdrop, close button, arrow keys support.
  *
+ * Re-initializes its media list and click triggers when the swatch -> gallery
+ * bridge replaces the gallery DOM on a configurable variant change
+ * (the `rollpix:gallery:dom_replaced` event). Without this the rebuilt
+ * `.rp-gallery-item` anchors carry no click handler, so a click falls through
+ * to the native href and the raw image file opens in the browser (IS-6367).
+ *
  * @category  Rollpix
  * @package   Rollpix_ProductGallery
  */
@@ -21,38 +27,10 @@ define([
             return;
         }
 
-        var $items = $gallery.find('.rp-gallery-item');
-        if ($items.length === 0) {
-            return;
-        }
-
-        // Collect media items
+        // Closure state, rebuilt by collectAndBind() on init and on every
+        // swatch-driven DOM replacement.
         var media = [];
-        $items.each(function () {
-            var $item = $(this);
-            var mediaType = $item.data('media-type') || 'image';
-
-            if (mediaType === 'video') {
-                var $source = $item.find('video source');
-                media.push({
-                    type: 'video',
-                    url: $source.attr('src') || '',
-                    alt: ''
-                });
-            } else {
-                media.push({
-                    type: 'image',
-                    url: $item.attr('href'),
-                    alt: $item.find('img').attr('alt') || ''
-                });
-            }
-        });
-
-        // Prevent default link behavior
-        $items.on('click', function (e) {
-            e.preventDefault();
-        });
-
+        var $items = $();
         var $overlay = null;
         var $stage = null;
         var $counter = null;
@@ -162,6 +140,9 @@ define([
             $(document).off('keydown.rpcarouselzoom');
 
             setTimeout(function () {
+                if (!$overlay) {
+                    return;
+                }
                 $overlay.css('display', 'none');
                 $('body').css('overflow', '');
                 $stage.empty();
@@ -196,18 +177,74 @@ define([
             });
         }
 
-        // Bind click on each gallery item
-        $items.each(function (index) {
-            $(this).on('click.rpcarouselzoom', function (e) {
-                e.preventDefault();
-                openModal(index);
+        // ----------------------------------------------------------
+        // (Re)collect the gallery items, rebuild the media list and
+        // (re)bind the click triggers. Safe to call repeatedly:
+        // handlers are namespaced and cleared first, and any cached
+        // overlay is torn down so buildModal() re-renders the prev/next
+        // controls for the current variant's image count.
+        // ----------------------------------------------------------
+        function collectAndBind() {
+            $items = $gallery.find('.rp-gallery-item');
+            if ($items.length === 0) {
+                return;
+            }
 
-                // Init swipe once overlay exists
-                if ($overlay && !$overlay.data('swipe-init')) {
-                    initSwipe();
-                    $overlay.data('swipe-init', true);
+            // Rebuild media from the live DOM.
+            media = [];
+            $items.each(function () {
+                var $item = $(this);
+                var mediaType = $item.data('media-type') || 'image';
+
+                if (mediaType === 'video') {
+                    var $source = $item.find('video source');
+                    media.push({
+                        type: 'video',
+                        url: $source.attr('src') || '',
+                        alt: ''
+                    });
+                } else {
+                    media.push({
+                        type: 'image',
+                        url: $item.attr('href'),
+                        alt: $item.find('img').attr('alt') || ''
+                    });
                 }
             });
-        });
+
+            // Tear down any cached overlay so the prev/next controls are
+            // rebuilt for the (possibly different) variant image count.
+            if ($overlay) {
+                $(document).off('keydown.rpcarouselzoom');
+                $('body').css('overflow', '');
+                $overlay.remove();
+                $overlay = null;
+                $stage = null;
+                $counter = null;
+            }
+            currentIndex = 0;
+
+            // Bind click on each gallery item (namespaced, idempotent).
+            $items
+                .off('click.rpcarouselzoom')
+                .on('click.rpcarouselzoom', function (e) {
+                    e.preventDefault();
+                    openModal($items.index(this));
+
+                    // Init swipe once overlay exists
+                    if ($overlay && !$overlay.data('swipe-init')) {
+                        initSwipe();
+                        $overlay.data('swipe-init', true);
+                    }
+                });
+        }
+
+        collectAndBind();
+
+        // The swatch -> gallery bridge replaces .rp-gallery-item anchors on a
+        // variant change and fires this event on [data-role="rp-gallery"]
+        // (same node as `element`). Re-collect + re-bind so the popup keeps
+        // working and shows the selected variant's images.
+        $gallery.on('rollpix:gallery:dom_replaced', collectAndBind);
     };
 });

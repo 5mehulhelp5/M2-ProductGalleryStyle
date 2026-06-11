@@ -1,3 +1,20 @@
+## What's New in 1.8.8
+
+### Fixed — Carousel/lightbox zoom opened the raw image file after a variant change
+
+On a configurable PDP with the swatch → gallery bridge enabled (`rollpix_gallery/configurable/swatch_gallery_switch_enabled = Yes`), clicking a gallery image opened the zoom popup correctly — until a variant was selected. After picking a swatch option (e.g. a size), clicking an image navigated the browser straight to the raw image file (`/media/catalog/product/cache/…/*.jpg`) instead of opening the popup, with no way to close other than the browser Back button.
+
+**Root cause**: `gallery-carousel-zoom.js` collected its `.rp-gallery-item` set and bound its `click.rpcarouselzoom` (`preventDefault` + open modal) handlers **once at `domReady`, directly on the original anchor nodes**. When a swatch is selected, `swatch-gallery-bridge.js` replaces the gallery anchors with fresh nodes built from `jsonConfig.images[pid]` and fires `rollpix:gallery:dom_replaced`. The carousel-zoom component never listened for that event, so the replacement anchors carried no click handler and a click fell through to the native `href` — opening the raw image. (The bridge's own header already documented this as a known light-mode limitation: "Zoom widgets are not re-initialized… may behave unexpectedly after a swatch change.")
+
+**Fix**: `gallery-carousel-zoom.js` now encapsulates "collect media + bind triggers" in a `collectAndBind()` function called both at init **and** on `rollpix:gallery:dom_replaced`. On re-init it re-queries `.rp-gallery-item`, rebuilds the `media[]` list from the live DOM (so the popup shows the selected variant's images), and rebinds the namespaced click handler (`.off('click.rpcarouselzoom')` first; uses the live `$items.index(this)` so navigation order matches the current variant). Any cached overlay is torn down (`$overlay.remove(); $overlay = null`) so `buildModal()` re-renders the prev/next controls for the variant's image count, and `closeModal()` now guards against a null overlay. The listener is bound on the `[data-role="rp-gallery"]` element — the same node the bridge triggers the event on.
+
+Applies to both `carousel` and `lightbox` zoom types (which share this component). Hover zoom (`gallery-zoom.js`) has the same structural pattern but is out of scope for this release.
+
+#### Files
+- `view/frontend/web/js/gallery-carousel-zoom.js` — extracted `collectAndBind()`; re-runs on `rollpix:gallery:dom_replaced`; rebuilds `media[]`, rebinds namespaced click triggers, tears down cached overlay; null-safe `closeModal()`
+
+---
+
 ## What's New in 1.8.7
 
 ### Fixed — Amasty_Label labels did not render / positioned wrong on the PDP gallery
