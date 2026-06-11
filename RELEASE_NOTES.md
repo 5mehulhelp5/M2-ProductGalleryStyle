@@ -1,3 +1,26 @@
+## What's New in 1.8.6
+
+### Changed — Swatch gallery now swaps on the first attribute alone (legacy fallback)
+
+In v1.8.4 the matcher was reworked to respect Magento's per-attribute `Update Product Preview Image` flag. For catalogs that explicitly opt color into preview updates and leave size off, picking a color alone already swapped the gallery — the intended behavior. But for legacy catalogs that never touched the admin flag, the matcher fell back to "every attribute counts" (v1.8.0 behavior), which on a color + talle configurable meant the gallery only swapped after *both* attributes were selected. Merchants reported that picking color should be enough to preview the variant without forcing them into per-attribute admin configuration.
+
+**Change**: `swatch-gallery-bridge.js` legacy fallback now treats only the **first attribute by DOM/position order** as preview-relevant. On a typical color + size configurable, picking color alone resolves to the first matching child SKU and swaps the gallery; sibling attributes (size, length…) are ignored by the matcher. Multiple children share a color so the first match is safe — they share the same image set.
+
+Behavior matrix:
+
+| Admin config | Before (≤ 1.8.5) | After (1.8.6) |
+|---|---|---|
+| No attribute has the flag (legacy) | All attributes must be selected | Only first attribute (typically color) drives the swap |
+| Color has the flag, size doesn't | Color alone swaps; size ignored | Unchanged — color alone swaps |
+| All attributes have the flag | All must be selected | Unchanged — all must be selected |
+
+Merchants who want to force the old "all must match" behavior can opt back in by setting `Update Product Preview Image = Yes` on every variable attribute (so the legacy fallback no longer applies and the strict path is used).
+
+#### Files
+- `view/frontend/web/js/swatch-gallery-bridge.js` — legacy fallback in `_rpMatchedProducts()` now restricts to the first iterated attribute (added `legacyFirstAttrId` tracking)
+
+---
+
 ## What's New in 1.8.5
 
 ### Fixed — Mobile carousel got stuck on the second photo on real iOS devices

@@ -13,8 +13,10 @@
  * "Update Product Preview Image" flag (update_product_preview_image).
  * On a configurable with e.g. color + size where only color has the
  * flag on, switching size keeps the current image. If no attribute has
- * the flag on (legacy catalogs), every attribute counts — preserving
- * v1.8.0 behaviour.
+ * the flag on (legacy catalogs), only the first attribute by display
+ * position drives the swap — typically `color` — so picking it alone
+ * is enough to swap the gallery without forcing the merchant to touch
+ * admin flags.
  *
  * ⚠ LIMITATIONS — see etc/adminhtml/system.xml (configurable group
  * comment) and README.md ("Configurable variant image switch") for the
@@ -144,9 +146,14 @@ define(['jquery'], function ($) {
             // to keep the current image — so size is ignored when
             // computing the match.
             //
-            // Backward-compat fallback: if NO attribute opts in (legacy
-            // catalogs where the merchant never touched the flag), every
-            // attribute counts — same as v1.8.0 behaviour.
+            // Legacy fallback: if NO attribute opts in (catalogs where
+            // the merchant never touched the flag), only the first
+            // attribute by DOM/position order is preview-relevant —
+            // typically `color` on a color+size configurable. Picking
+            // color alone resolves to the first child SKU that matches
+            // and swaps the gallery; sibling attributes (size, length…)
+            // are ignored. Multiple children share a color, so picking
+            // the first match is safe — they share the same image set.
             //
             // Returns null if no option is selected or if the current
             // selection of preview-relevant attributes is partial.
@@ -167,6 +174,7 @@ define(['jquery'], function ($) {
                 var selected = {};
                 var relevantCount = 0;
                 var selectedCount = 0;
+                var legacyFirstAttrId = null;
 
                 this.element
                     .find('.' + this.options.classes.attributeClass)
@@ -175,8 +183,17 @@ define(['jquery'], function ($) {
                         var attrId = $attr.data('attribute-id');
                         var attrMeta = jsonAttrs[attrId] || {};
 
-                        if (hasOptIn && !widget._rpAttrUpdatesPreview(attrMeta)) {
-                            return;
+                        if (hasOptIn) {
+                            if (!widget._rpAttrUpdatesPreview(attrMeta)) {
+                                return;
+                            }
+                        } else {
+                            if (legacyFirstAttrId === null) {
+                                legacyFirstAttrId = attrId;
+                            }
+                            if (attrId !== legacyFirstAttrId) {
+                                return;
+                            }
                         }
 
                         relevantCount++;
