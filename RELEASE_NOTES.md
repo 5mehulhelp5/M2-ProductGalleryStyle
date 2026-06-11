@@ -1,4 +1,4 @@
-## What's New in 1.8.7
+## What's New in 1.8.8
 
 ### Fixed — Carousel/lightbox zoom opened the raw image file after a variant change
 
@@ -12,6 +12,24 @@ Applies to both `carousel` and `lightbox` zoom types (which share this component
 
 #### Files
 - `view/frontend/web/js/gallery-carousel-zoom.js` — extracted `collectAndBind()`; re-runs on `rollpix:gallery:dom_replaced`; rebuilds `media[]`, rebinds namespaced click triggers, tears down cached overlay; null-safe `closeModal()`
+
+---
+
+## What's New in 1.8.7
+
+### Fixed — Amasty_Label labels did not render / positioned wrong on the PDP gallery
+
+On stores running both this module and `Amasty_Label`, product labels rendered fine in the category grid but misbehaved on the product page: (1) they did not render at all on the PDP, (2) when forced to render they appeared at the end of the gallery block instead of overlaid on the image, and (3) the label bled on top of dropdown menus, modals and other theme overlays. Detected and reproduced on Tienda Imco ([IS-6206](https://rollpix.atlassian.net/browse/IS-6206)); all three causes live in this module / its Amasty integration, not in the site.
+
+**Fix** (three coordinated changes):
+
+1. **`etc/frontend/di.xml`** — register the vertical gallery block name in Amasty's plugin allowlist. `Amasty\Label\Plugin\Catalog\Product\View\Label::afterToHtml` only emits the label HTML when `getNameInLayout()` is in an internal list (`product.info.media.image`, …). This module swaps the gallery for a block named `rollpix.product.gallery.vertical`, so the plugin silently skipped it. The name is injected via `<argument name="allowedNames">` (Amasty `array_merge`s it with its hardcoded list — the supported extension path, no `vendor/` patch).
+2. **`view/frontend/templates/product/view/gallery-vertical.phtml`** — add `id="amasty-main-container"` to `.rp-gallery-images`. `initLabel.js` relocates the label node into the first descendant matching `.fotorama__stage, #amasty-main-container`; the vertical gallery exposed neither, so the label stayed where the plugin injected it (end of block). The id gives Amasty a valid anchor to overlay the label on the image with no per-label config.
+3. **`view/frontend/templates/product/view/gallery-vertical.phtml`** — add `style="isolation: isolate;"` on the outer `.rp-product-gallery` wrapper. Amasty hardcodes `z-index: 995` on `.amlabel-position-wrapper`; most themes use far lower z-indexes for menu/header/modals, so the label punched through them. The isolation creates a stacking context that traps Amasty's 995 inside the gallery, letting any site element with `z-index > 0` paint above it. (It lives on the outer wrapper, not on `#amasty-main-container`, because `initLabel.js` overwrites that element's inline `style` via `this.parent.css('position', 'relative')`.)
+
+#### Files
+- `etc/frontend/di.xml` — `allowedNames` entry registering `rollpix.product.gallery.vertical` on `Amasty\Label\Plugin\Catalog\Product\View\Label`
+- `view/frontend/templates/product/view/gallery-vertical.phtml` — `id="amasty-main-container"` anchor + `isolation: isolate` on the wrapper
 
 ---
 
