@@ -5,6 +5,12 @@
  * For slider layout, tracking and clicks are handled by gallery-slider.js.
  * Desktop only (hidden on mobile via CSS).
  *
+ * Re-initializes on `rollpix:gallery:dom_replaced` so the strip keeps
+ * tracking the correct images after the swatch → gallery bridge rebuilds
+ * the thumbnails (and images) for a different variant on a configurable
+ * PDP — otherwise the observer/highlight stayed bound to the detached
+ * parent thumbnails (IS-6448).
+ *
  * @category  Rollpix
  * @package   Rollpix_ProductGallery
  */
@@ -27,17 +33,53 @@ define([
             return;
         }
 
-        var $items = $gallery.find('.rp-gallery-item');
-        var $thumbnails = $gallery.find('.rp-thumbnail-item');
+        // The strip wrapper is stable; its .rp-thumbnail-item children are
+        // rebuilt by the swatch bridge, so they're re-queried in setup().
         var $strip = $gallery.find('.rp-thumbnail-strip');
 
-        if (!$items.length || !$thumbnails.length) {
-            return;
+        var $items, $thumbnails, $highlight, observer;
+
+        setup();
+
+        // Re-run when the swatch bridge swaps the variant's thumbnails.
+        $gallery.on('rollpix:gallery:dom_replaced.rpthumbsreinit', function () {
+            if (window.innerWidth <= 767) {
+                teardown();
+                return;
+            }
+            setup();
+        });
+
+        function setup() {
+            teardown();
+
+            $items = $gallery.find('.rp-gallery-item');
+            $thumbnails = $gallery.find('.rp-thumbnail-item');
+
+            if (!$items.length || !$thumbnails.length) {
+                return;
+            }
+
+            initThumbnailTracking();
+            initThumbnailClicks();
+            initHighlight();
         }
 
-        initThumbnailTracking();
-        initThumbnailClicks();
-        initHighlight();
+        function teardown() {
+            if (observer) {
+                observer.disconnect();
+                observer = null;
+            }
+            // Drop this component's handlers on any live thumbnails and
+            // the slider-change listener, and remove the highlight node so
+            // re-init doesn't stack duplicates.
+            $gallery.find('.rp-thumbnail-item').off('.rpthumbs');
+            $gallery.off('rpslider:change.rpthumbs');
+            if ($highlight) {
+                $highlight.remove();
+                $highlight = null;
+            }
+        }
 
         function initThumbnailTracking() {
             // Slider JS manages active thumbnail state
@@ -49,7 +91,7 @@ define([
                 return;
             }
 
-            var observer = new IntersectionObserver(function (entries) {
+            observer = new IntersectionObserver(function (entries) {
                 entries.forEach(function (entry) {
                     if (entry.isIntersecting && entry.intersectionRatio >= 0.5) {
                         var index = $items.index(entry.target);
@@ -76,7 +118,7 @@ define([
                 return;
             }
 
-            $thumbnails.on('click', function () {
+            $thumbnails.on('click.rpthumbs', function () {
                 var index = $(this).data('thumb-index');
                 var $targetItem = $items.eq(index);
 
@@ -94,8 +136,6 @@ define([
         // =========================================
         // SLIDING HIGHLIGHT INDICATOR
         // =========================================
-        var $highlight = null;
-
         function initHighlight() {
             $highlight = $('<div class="rp-thumbnail-highlight"></div>');
             $strip.append($highlight);
@@ -108,7 +148,7 @@ define([
 
             // For slider layout, listen to slider change events
             if (layoutType === 'slider') {
-                $gallery.on('rpslider:change', function (e, currentIndex) {
+                $gallery.on('rpslider:change.rpthumbs', function (e, currentIndex) {
                     var $thumb = $thumbnails.eq(currentIndex);
                     scrollThumbIntoView($thumb);
                     moveHighlight($thumb);

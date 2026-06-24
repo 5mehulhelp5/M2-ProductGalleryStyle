@@ -29,6 +29,27 @@ define([
 
         init();
 
+        // Rebuild the carousel when the swatch → gallery bridge swaps the
+        // images for a different variant. The bridge does $container.empty()
+        // on .rp-gallery-images, which destroys the .rp-carousel-track and
+        // appends the new items as bare children — leaving the carousel
+        // "active" but with an empty track, so only the first image showed
+        // and swipe/dots broke (IS-6448). We can't call destroyCarousel()
+        // (its $track/$items refs are now detached); instead reset the
+        // structure flags and re-run the viewport check to rebuild fresh.
+        $gallery.on('rollpix:gallery:dom_replaced.rpcarouselreinit', function () {
+            if (mobileBehavior !== 'carousel') {
+                return;
+            }
+            isCarouselInitialized = false;
+            currentIndex = 0;
+            $gallery.removeClass('rp-carousel-active');
+            $gallery.find('.rp-gallery-images')
+                .removeClass('rp-carousel-wrapper')
+                .css('height', '');
+            checkViewport();
+        });
+
         function init() {
             checkViewport();
             $(window).on('resize', debounce(checkViewport, 250));

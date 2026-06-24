@@ -89,11 +89,11 @@ A modern, editorial-style product gallery module for Magento 2 that replaces the
 ### Configurable Variant Image Switch (Light Mode, Opt-In)
 - **Swatch → Gallery bridge**: on a configurable product PDP, selecting a swatch option (e.g. color) replaces the gallery images with the photos assigned to the matching child SKU. Implemented as a mixin over `Magento_Swatches/js/swatch-renderer` reading `jsonConfig.images[productId]`.
 - **Opt-in**: disabled by default. Enable under `Stores → Configuration → Rollpix → Product Gallery → Configurable Products → Swatch Gallery Image Switch (Light Mode)`.
-- **Shimmer-aware**: fires a `rollpix:gallery:dom_replaced` event so the shimmer effect re-detects the new items and does not get stuck.
-- **XSS-safe**: new items are built with the DOM API, not string concatenation.
+- **Widget-aware** (since 1.9.0): fires a `rollpix:gallery:dom_replaced` event so the Slider, Thumbnails, mobile Carousel, Shimmer and all Zoom types (hover/click in-place + modal/carousel/lightbox) re-initialize on the new variant images and keep working — across variant switches, deselect, and mobile↔desktop resizes. Also rebuilds the thumbnail strip to follow the selected variant.
+- **XSS-safe**: new items (and thumbnails) are built with the DOM API, not string concatenation.
 - **WebP-defensive**: preserves the `<picture class="mfwebp">` wrapper when present.
 - **Coexists with `Rollpix_ConfigurableGallery`**: both modules can be installed together. The light-mode bridge is gated entirely by the admin flag, so if the full-feature companion module is installed, simply leave this flag off and its richer bridge handles swatch changes instead.
-- **Known limitations**: Zoom / Slider / Thumbnail / Sticky widgets are NOT re-initialized on the new variant images. Videos are skipped on variants. Light mode is designed for stack layouts (Vertical / Grid / Fashion) with Zoom set to Lightbox / Modal Zoom / Disabled. For full support, install `Rollpix_ConfigurableGallery`.
+- **Known limitations**: Videos are skipped on variants. The scroll-aware Sticky panel is not explicitly re-initialized (it self-recalculates on scroll/resize). Under a WebP-optimization plugin (MageFan/Yireo), variant images may serve the non-WebP originals. For full feature parity, install `Rollpix_ConfigurableGallery`.
 
 ### Performance
 - **Lazy Loading**: Native lazy loading for images; IntersectionObserver for videos

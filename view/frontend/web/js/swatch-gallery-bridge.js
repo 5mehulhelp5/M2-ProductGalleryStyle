@@ -18,16 +18,21 @@
  * is enough to swap the gallery without forcing the merchant to touch
  * admin flags.
  *
+ * On a swap this rebuilds both the main images (.rp-gallery-images) and
+ * the thumbnail strip (.rp-thumbnail-item) from jsonConfig.images[pid],
+ * then fires `rollpix:gallery:dom_replaced` on the gallery node. The
+ * layout/zoom widgets listen for that event and re-initialize against the
+ * new DOM, so Slider, Thumbnails, mobile Carousel, Shimmer, all Zoom
+ * types (hover/click in-place + modal/carousel/lightbox) and viewport
+ * (mobile↔desktop) changes all keep working after a variant switch
+ * (IS-6448).
+ *
  * ⚠ LIMITATIONS — see etc/adminhtml/system.xml (configurable group
  * comment) and README.md ("Configurable variant image switch") for the
- * full list. This is explicitly a *light* mode:
+ * full list. This is still a *light* mode:
  *   - Only still images are switched (videos are skipped on variants).
- *   - Zoom widgets (hover/click) are not re-initialized and may behave
- *     unexpectedly after a swatch change. Recommend Lightbox / Modal
- *     Zoom / Disabled for configurable PDPs.
- *   - Slider / carousel / thumbnail / sticky widgets are not
- *     re-initialized — the light mode is designed for stack layouts
- *     (Vertical / Grid / Fashion).
+ *   - The scroll-aware Sticky panel is not explicitly re-initialized; it
+ *     self-recalculates on scroll/resize via its own MutationObserver.
  *   - Under a WebP-optimization plugin (MageFan mfwebp, Yireo WebP2),
  *     variant images may be served as the non-WebP originals.
  *
@@ -61,6 +66,9 @@ define(['jquery'], function ($) {
             /** Original gallery HTML, saved on first swatch interaction. */
             _rpOriginalItemsHtml: null,
 
+            /** Original thumbnail-item buttons (outerHTML), saved alongside. */
+            _rpOriginalThumbsHtml: null,
+
             /** Last child product id whose images were pushed into the gallery. */
             _rpLastSyncedProductId: null,
 
@@ -91,10 +99,16 @@ define(['jquery'], function ($) {
                     return;
                 }
 
-                // Snapshot original parent gallery on first interaction so
-                // we can restore it when the selection is cleared.
+                // Snapshot original parent gallery + thumbnails on first
+                // interaction so we can restore them when the selection is
+                // cleared. Only the .rp-thumbnail-item buttons are captured
+                // (not the JS-managed .rp-thumbnail-highlight node).
                 if (this._rpOriginalItemsHtml === null) {
                     this._rpOriginalItemsHtml = $container.html();
+                    var origThumbs = '';
+                    $gallery.find('.rp-thumbnail-strip .rp-thumbnail-item')
+                        .each(function () { origThumbs += this.outerHTML; });
+                    this._rpOriginalThumbsHtml = origThumbs;
                 }
 
                 var productIds = this._rpMatchedProducts();
@@ -103,6 +117,7 @@ define(['jquery'], function ($) {
                     // No full selection yet → restore parent gallery.
                     if (this._rpLastSyncedProductId !== null) {
                         $container.html(this._rpOriginalItemsHtml);
+                        this._rpRestoreThumbnails($gallery);
                         this._rpLastSyncedProductId = null;
                         this._rpFireDomReplaced($gallery);
                     }
@@ -306,6 +321,10 @@ define(['jquery'], function ($) {
 
                 var frag = document.createDocumentFragment();
                 var appended = 0;
+                // Images that actually made it into the gallery, in order,
+                // so the thumbnail strip can be rebuilt from the exact same
+                // set (same skip rules) and indices stay aligned.
+                var usable = [];
 
                 $.each(images, function (i, img) {
                     // Videos cannot be reliably reconstructed from
@@ -316,6 +335,8 @@ define(['jquery'], function ($) {
                     if (!img || !img.img) {
                         return;
                     }
+
+                    usable.push(img);
 
                     var anchor = document.createElement('a');
                     anchor.className = 'rp-gallery-item';
@@ -353,7 +374,76 @@ define(['jquery'], function ($) {
                 $container.empty();
                 $container[0].appendChild(frag);
 
+                this._rpRebuildThumbnails($gallery, usable, altBase);
+
                 this._rpFireDomReplaced($gallery);
+            },
+
+            // ----------------------------------------------------------
+            // Rebuild the .rp-thumbnail-item buttons in the thumbnail
+            // strip from the same usable images as the main gallery, so a
+            // variant switch updates the thumbnails too (previously the
+            // strip kept the parent's thumbs — IS-6448). The JS-managed
+            // .rp-thumbnail-highlight node is preserved; gallery-thumbnails
+            // re-creates it on `rollpix:gallery:dom_replaced`. DOM nodes
+            // (not string concat) to stay XSS-safe on image URLs.
+            // ----------------------------------------------------------
+            _rpRebuildThumbnails: function ($gallery, usable, altBase) {
+                var $strip = $gallery.find('.rp-thumbnail-strip').first();
+                if (!$strip.length || !usable.length) {
+                    return;
+                }
+
+                $strip.find('.rp-thumbnail-item').remove();
+
+                var frag = document.createDocumentFragment();
+                usable.forEach(function (img, idx) {
+                    var btn = document.createElement('button');
+                    btn.type = 'button';
+                    btn.className = 'rp-thumbnail-item' +
+                        (idx === 0 ? ' rp-thumbnail-active' : '');
+                    btn.setAttribute('data-thumb-index', String(idx));
+
+                    var imgEl = document.createElement('img');
+                    imgEl.src = img.thumb || img.img;
+                    imgEl.alt = altBase;
+                    imgEl.loading = 'lazy';
+
+                    btn.appendChild(imgEl);
+                    frag.appendChild(btn);
+                });
+
+                // Keep the new buttons ahead of the absolutely-positioned
+                // highlight node (if present) so DOM order matches the
+                // gallery items.
+                var highlight = $strip[0].querySelector('.rp-thumbnail-highlight');
+                if (highlight) {
+                    $strip[0].insertBefore(frag, highlight);
+                } else {
+                    $strip[0].appendChild(frag);
+                }
+            },
+
+            // ----------------------------------------------------------
+            // Restore the parent product's original thumbnail buttons when
+            // the swatch selection is cleared. Mirrors the images restore
+            // ($container.html(originalItems)) in _rpSyncGallery.
+            // ----------------------------------------------------------
+            _rpRestoreThumbnails: function ($gallery) {
+                if (this._rpOriginalThumbsHtml === null) {
+                    return;
+                }
+                var $strip = $gallery.find('.rp-thumbnail-strip').first();
+                if (!$strip.length) {
+                    return;
+                }
+                $strip.find('.rp-thumbnail-item').remove();
+                var highlight = $strip[0].querySelector('.rp-thumbnail-highlight');
+                if (highlight) {
+                    $(this._rpOriginalThumbsHtml).insertBefore(highlight);
+                } else {
+                    $strip.append(this._rpOriginalThumbsHtml);
+                }
             },
 
             // ----------------------------------------------------------
