@@ -1,3 +1,36 @@
+## What's New in 1.9.0
+
+### Fixed — Slider / thumbnails / mobile carousel / zoom broke after a variant change (and across mobile↔desktop resizes)
+
+On a configurable PDP with the swatch → gallery bridge enabled (`rollpix_gallery/configurable/swatch_gallery_switch_enabled = Yes`) and a non-stack layout (Slider, or any layout on mobile where the Carousel takes over), selecting a swatch option left the gallery broken ([IS-6448](https://rollpix.atlassian.net/browse/IS-6448), Bordoli):
+
+- **Desktop slider** — the variant's images rendered as a full vertical stack instead of one-at-a-time; the prev/next arrows no longer moved the gallery; the dots were stale.
+- **Thumbnails** — the strip kept showing the **parent** product's thumbnails; they never followed the selected variant.
+- **Mobile carousel** — only the first image showed; the 2nd photo was no longer swipeable.
+- **Click / hover zoom** — after a variant change, clicking the image navigated the browser straight to the raw image file instead of zooming (same class of bug 1.8.8 fixed for modal/carousel/lightbox zoom; `gallery-zoom.js` was left out of scope then).
+- **Mobile ↔ desktop resize** — the slider never (re)activated when the viewport crossed the 767px breakpoint (it only set up once at load, and bailed on mobile), so resizing back to desktop — or loading on mobile then widening — left the images as a vertical stack on desktop. This affected slider-layout sites **even without** the swatch bridge.
+
+**Root cause**: `swatch-gallery-bridge.js` replaced `.rp-gallery-images` (via `$container.empty()` + append of fresh nodes) and fired `rollpix:gallery:dom_replaced`, but only `gallery-effects.js` (shimmer) and `gallery-carousel-zoom.js` listened for it. `gallery-slider.js`, `gallery-thumbnails.js`, `gallery-carousel.js` and `gallery-zoom.js` cached their `.rp-gallery-item` / `.rp-thumbnail-item` sets and bound their handlers **once at init**, so after the swap the new items carried no slider display state, the arrows/dots/thumbnail/zoom handlers stayed bound to the detached original nodes, the mobile `.rp-carousel-track` was wiped, and the bridge never rebuilt the thumbnail strip at all. Separately, the slider had no viewport-crossing logic (the mobile carousel did).
+
+**Fix** (extends the v1.8.8 `collectAndBind()` re-init pattern to the remaining widgets):
+
+1. **`gallery-slider.js`** — init wrapped in idempotent `setup()`/`teardown()`; re-runs on `rollpix:gallery:dom_replaced`. **Also** made viewport-aware (mirrors `gallery-carousel.js`): a debounced window-resize handler activates the slider when the viewport is desktop and deactivates it (clearing per-item inline styles for the carousel) when it crosses to mobile — both directions, regardless of the initial viewport. Teardown offs all `.rpslider`-namespaced handlers and empties the dots; setup re-queries items/thumbnails, resets `currentIndex`, rebuilds dots and re-applies the one-visible state.
+2. **`gallery-thumbnails.js`** — same `setup()`/`teardown()` split; re-runs on the event. The `IntersectionObserver` is disconnected and the sliding `.rp-thumbnail-highlight` re-created on each swap (no duplicate highlights). Handlers namespaced `.rpthumbs`.
+3. **`gallery-carousel.js`** (mobile) — listens for the event, resets its flags/classes (the bridge wiped its track) and re-runs the viewport check to rebuild a fresh track + indicators from the variant's images.
+4. **`gallery-zoom.js`** — `setup()`/`teardown()` + re-init on the event for both hover (magnifier) and click (in-place) zoom; added an immediate `preventDefault` guard on each item so a click during the large-image load window can never fall through to the anchor `href` (the raw file).
+5. **`swatch-gallery-bridge.js`** — now rebuilds the **thumbnail strip** (`.rp-thumbnail-item`) from the same `jsonConfig.images[pid]` set as the main images (using `img.thumb`), in DOM-node form (XSS-safe), preserving the JS-managed highlight node; snapshots the original thumbnails and restores them (alongside the images) when the selection is cleared.
+
+Net effect: Slider, Thumbnails, the mobile Carousel and all Zoom types now keep working across variant switches, on deselect, and across mobile↔desktop resizes — no longer limited to stack layouts. The scroll-aware Sticky panel is still not explicitly re-initialized (it self-recalculates on scroll/resize via its own MutationObserver). **JS-only change** — no PHP / template / layout / CSS / admin changes; behavior with the bridge disabled (the default) is unchanged.
+
+#### Files
+- `view/frontend/web/js/gallery-slider.js` — `setup()`/`teardown()`, re-init on event + mobile↔desktop viewport crossing
+- `view/frontend/web/js/gallery-thumbnails.js` — `setup()`/`teardown()`, observer/highlight re-init
+- `view/frontend/web/js/gallery-carousel.js` — rebuild mobile carousel on the event
+- `view/frontend/web/js/gallery-zoom.js` — re-init hover/click zoom + immediate click guard
+- `view/frontend/web/js/swatch-gallery-bridge.js` — rebuild + snapshot/restore the thumbnail strip; updated header docs
+
+---
+
 ## What's New in 1.8.8
 
 ### Fixed — Carousel/lightbox zoom opened the raw image file after a variant change

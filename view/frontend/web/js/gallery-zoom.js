@@ -3,6 +3,14 @@
  *
  * Supports: hover (magnifier), click (in-place), disabled
  *
+ * Re-initializes on `rollpix:gallery:dom_replaced` so zoom keeps working
+ * after the swatch → gallery bridge swaps the images for a different
+ * variant on a configurable PDP. Without this the rebuilt
+ * `.rp-gallery-item` anchors carried no zoom handler and a click fell
+ * through to the anchor's `href` — opening the raw image file (IS-6448).
+ * Mirrors the v1.8.8 fix in gallery-carousel-zoom.js for the modal/
+ * carousel/lightbox zoom types.
+ *
  * @category  Rollpix
  * @package   Rollpix_ProductGallery
  */
@@ -22,13 +30,39 @@ define([
             return;
         }
 
-        if (zoomType === 'click') {
-            initClickZoom();
-            return;
+        setup();
+
+        // Re-run when the swatch → gallery bridge replaces the images for
+        // a different variant.
+        $gallery.on('rollpix:gallery:dom_replaced.rpzoomreinit', function () {
+            setup();
+        });
+
+        /**
+         * (Re)bind zoom against the current images. Idempotent: clears any
+         * prior zoom DOM/handlers first so it can run on every swap.
+         */
+        function setup() {
+            teardown();
+            if (zoomType === 'click') {
+                initClickZoom();
+            } else {
+                initHoverZoom();
+            }
         }
 
-        // Default: hover zoom
-        initHoverZoom();
+        function teardown() {
+            $gallery.find('.rp-gallery-item').off('.rpzoom')
+                .removeClass('rp-click-zoom-item rp-click-zoomed');
+            // Undo hover-zoom wrappers + lenses and click-zoom overlays.
+            $gallery.find('.rp-zoom-wrapper').each(function () {
+                $(this).find('.rp-gallery-item').unwrap();
+            });
+            $gallery.find('.rp-zoom-lens, .rp-zoom-result-inside, .rp-click-zoom-overlay').remove();
+            // Shared hover result panel lives on <body> — drop it so swaps
+            // don't stack multiple copies.
+            $('.rp-zoom-result-fixed').remove();
+        }
 
         /* ===========================================================
            HOVER ZOOM - Magnifier lens + result panel
@@ -48,7 +82,10 @@ define([
                 var $img = $item.find('img');
                 var largeImageUrl = $item.attr('href');
 
-                $item.on('click', function (e) {
+                // Immediate guard: never let a click on the gallery image
+                // navigate to the raw file, even before the large image
+                // below has loaded and the behaviour handlers are bound.
+                $item.on('click.rpzoom', function (e) {
                     e.preventDefault();
                 });
 
@@ -179,6 +216,12 @@ define([
                 var $img = $item.find('img');
                 var largeImageUrl = $item.attr('href');
                 var isZoomed = false;
+
+                // Immediate guard: never let a click navigate to the raw
+                // file, even before the large image loads below.
+                $item.on('click.rpzoom', function (e) {
+                    e.preventDefault();
+                });
 
                 // Create overlay for zoomed view
                 var $zoomOverlay = $('<div class="rp-click-zoom-overlay"></div>');
