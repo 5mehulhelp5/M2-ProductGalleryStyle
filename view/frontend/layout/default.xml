@@ -18,10 +18,25 @@
     </head>
 
     <body>
+        <!--
+            Resolver crítico del shimmer: va en el <head> para que el listener
+            de `load` en fase de captura exista antes de que el parser llegue a
+            las imágenes del listing. Sin esto el shimmer sólo se destapa
+            cuando RequireJS resuelve toda la cadena de módulos (~2s), aunque
+            la imagen ya esté pintada desde cache. Ver shimmer-critical.phtml.
+        -->
+        <referenceBlock name="head.additional">
+            <block class="Magento\Framework\View\Element\Template"
+                   name="rollpix.listing.shimmer.critical"
+                   template="Rollpix_ProductGallery::product/listing/shimmer-critical.phtml"
+                   ifconfig="rollpix_gallery/effects/shimmer_enabled"/>
+        </referenceBlock>
+
         <referenceContainer name="before.body.end">
             <block class="Magento\Framework\View\Element\Template"
                    name="rollpix.listing.effects.init"
-                   template="Rollpix_ProductGallery::product/listing/effects-init.phtml"/>
+                   template="Rollpix_ProductGallery::product/listing/effects-init.phtml"
+                   ifconfig="rollpix_gallery/effects/shimmer_enabled"/>
         </referenceContainer>
     </body>
 

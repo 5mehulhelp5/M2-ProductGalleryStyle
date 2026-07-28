@@ -34,21 +34,16 @@ class ImagePlugin
      */
     private static array $videoDataCache = [];
 
-    /**
-     * @param ResourceConnection|null $resourceConnection Optional for backwards compat
-     *        with pre-compiled DI. Falls back to ObjectManager if not injected.
-     */
     public function __construct(
         Config $config,
         VideoUrlParser $videoUrlParser,
         StoreManagerInterface $storeManager,
-        ?ResourceConnection $resourceConnection = null
+        ResourceConnection $resourceConnection
     ) {
         $this->config = $config;
         $this->videoUrlParser = $videoUrlParser;
         $this->storeManager = $storeManager;
-        $this->resourceConnection = $resourceConnection
-            ?: \Magento\Framework\App\ObjectManager::getInstance()->get(ResourceConnection::class);
+        $this->resourceConnection = $resourceConnection;
     }
 
     /**
@@ -60,7 +55,16 @@ class ImagePlugin
         $html = $this->injectVideoHtml($subject, $result);
 
         // Shimmer wrapper for all listing images
-        if ($this->config->isShimmerEnabled()) {
+        if ($this->config->isShimmerEnabled()
+            && trim($html) !== ''
+            && !str_contains($html, 'rp-listing-shimmer')
+        ) {
+            /*
+             * Guards: un $html vacío generaba un wrapper sin media adentro,
+             * que se quedaba animando para siempre (nunca hay un evento
+             * `load` que lo destape). El chequeo de la clase evita anidar
+             * wrappers si el bloque se re-renderiza sobre HTML ya procesado.
+             */
             $html = '<div class="rp-listing-shimmer">' . $html . '</div>';
         }
 
@@ -88,8 +92,19 @@ class ImagePlugin
             return $videoHtml;
         }
 
-        // "Image size" mode: replace <img> inside the Magento container
-        $replaced = preg_replace('/<img\b[^>]*\/?>/i', $videoHtml, $result, 1);
+        /*
+         * "Image size" mode: replace <img> inside the Magento container.
+         * Callback en vez de reemplazo directo: $videoHtml es HTML arbitrario
+         * con URLs, y preg_replace interpreta `$1`, `\1`, `$0`... en el string
+         * de reemplazo. Una URL de video con `$` en el querystring rompía el
+         * markup de forma silenciosa.
+         */
+        $replaced = preg_replace_callback(
+            '/<img\b[^>]*\/?>/i',
+            static fn (): string => $videoHtml,
+            $result,
+            1
+        );
 
         return $replaced ?: $videoHtml;
     }
@@ -121,9 +136,21 @@ class ImagePlugin
         $product = $subject->getData('rp_product');
         if ($product) {
             $videoData = $product->getData('rp_listing_video');
+
+            /*
+             * `false` lo setea AddVideoDataPlugin para decir "el batch corrió
+             * y este producto no tiene video". Cortar acá evita la query por
+             * producto del fallback de abajo, que es el caso mayoritario en
+             * cualquier listado real.
+             */
+            if ($videoData === false) {
+                return null;
+            }
         }
 
-        // 3. Fallback: load video data directly from DB using product_id
+        // 3. Fallback: load video data directly from DB using product_id.
+        // Sólo para bloques Image fuera de un listing enriquecido (widgets
+        // sueltos, related/upsell renderizados por otro camino).
         if (!$videoData || !is_array($videoData)) {
             $productId = (int)($subject->getData('product_id') ?: 0);
             if ($productId) {
@@ -193,14 +220,20 @@ class ImagePlugin
                 )
                 ->join(
                     ['mgv' => $valueTable],
-                    'mgv.value_id = mgvte.value_id'
-                        . ' AND (mgv.store_id = 0 OR mgv.store_id = ' . $storeId . ')',
+                    $connection->quoteInto(
+                        'mgv.value_id = mgvte.value_id AND (mgv.store_id = 0 OR mgv.store_id = ?)',
+                        $storeId,
+                        \Zend_Db::INT_TYPE
+                    ),
                     ['position']
                 )
                 ->joinLeft(
                     ['mgvv' => $videoTable],
-                    'mgvv.value_id = mgvte.value_id'
-                        . ' AND (mgvv.store_id = 0 OR mgvv.store_id = ' . $storeId . ')',
+                    $connection->quoteInto(
+                        'mgvv.value_id = mgvte.value_id AND (mgvv.store_id = 0 OR mgvv.store_id = ?)',
+                        $storeId,
+                        \Zend_Db::INT_TYPE
+                    ),
                     ['video_url' => 'url', 'provider']
                 )
                 ->where('mgvte.entity_id = ?', $productId)

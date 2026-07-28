@@ -1,0 +1,97 @@
+<?php
+/**
+ * Rollpix ProductGallery - Critical Shimmer Resolver
+ *
+ * Se inyecta en el <head>, ANTES de que el parser llegue a las imágenes del
+ * listing. Su única responsabilidad es sacar el shimmer apenas la imagen está
+ * pintada.
+ *
+ * Por qué inline y por qué acá arriba: el resolver vivía sólo en
+ * `gallery-listing-effects.js`, un módulo RequireJS con `domReady!`. Eso ata
+ * el destape del shimmer a que RequireJS resuelva TODA la cadena de módulos
+ * de la página (~190 archivos en un Luma con módulos de terceros), no a que
+ * la imagen esté lista. Resultado medido en producción: imágenes servidas
+ * desde disk-cache del browser (0 bytes de red, `complete=true` a los 810ms)
+ * seguían tapadas por el shimmer hasta los ~2.2s. El user percibía "la
+ * imagen nunca queda cacheada" cuando en realidad ya estaba pintada abajo.
+ *
+ * Este script no depende de jQuery, RequireJS ni domReady, así que corre
+ * cuando el browser lo parsea. `gallery-listing-effects.js` sigue existiendo
+ * para el contenido que entra por AJAX después (paginación de Amasty Shopby,
+ * swatches, widgets lazy).
+ *
+ * @category  Rollpix
+ * @package   Rollpix_ProductGallery
+ */
+?>
+<script>
+    (function () {
+        'use strict';
+
+        var LOADED = 'rp-loaded';
+        var SEL = '.rp-listing-shimmer';
+
+        function markFrom(node) {
+            if (!node || !node.closest) { return; }
+            var host = node.closest(SEL);
+            if (host && host.className.indexOf(LOADED) === -1) {
+                host.classList.add(LOADED);
+            }
+        }
+
+        /*
+         * Los eventos `load`/`error` de <img> no burbujean, pero sí se pueden
+         * capturar en la fase de captura desde document. Registrarlo acá —
+         * antes de que exista cualquier <img> del listing — garantiza que no
+         * se pierda ninguna carga.
+         */
+        document.addEventListener('load', function (e) {
+            var t = e.target;
+            if (!t || !t.tagName) { return; }
+            var tag = t.tagName;
+            if (tag === 'IMG' || tag === 'VIDEO' || tag === 'IFRAME') { markFrom(t); }
+        }, true);
+
+        document.addEventListener('error', function (e) {
+            var t = e.target;
+            // Imagen rota: destapar igual, si no el shimmer queda animando para siempre.
+            if (t && t.tagName === 'IMG') { markFrom(t); }
+        }, true);
+
+        /*
+         * Barrido para las imágenes que ya estaban `complete` — el caso de
+         * cache caliente, donde el `load` puede haber disparado antes de que
+         * este script corriera (por ejemplo si el head se sirvió fragmentado).
+         */
+        function sweep() {
+            var nodes = document.querySelectorAll(SEL + ':not(.' + LOADED + ')');
+            for (var i = 0; i < nodes.length; i++) {
+                var media = nodes[i].querySelector('img, video, iframe');
+                if (!media) { continue; }
+                if (media.tagName === 'IMG' && media.complete && media.naturalWidth > 0) {
+                    nodes[i].classList.add(LOADED);
+                } else if (media.tagName === 'VIDEO' && media.readyState >= 2) {
+                    nodes[i].classList.add(LOADED);
+                }
+            }
+        }
+
+        /*
+         * Durante el parse del documento las cards aparecen de a poco. Un rAF
+         * loop acotado destapa cada card apenas su <img> cacheada se resuelve,
+         * sin esperar a DOMContentLoaded. Se corta solo: es un puente hasta
+         * que el DOM está completo, no un observer permanente.
+         */
+        var frames = 0;
+        function tick() {
+            sweep();
+            if (++frames < 120 && document.readyState !== 'complete') {
+                requestAnimationFrame(tick);
+            }
+        }
+        if (window.requestAnimationFrame) { requestAnimationFrame(tick); }
+
+        document.addEventListener('DOMContentLoaded', sweep);
+        window.addEventListener('load', sweep);
+    })();
+</script>

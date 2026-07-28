@@ -71,9 +71,16 @@ class AddVideoDataPlugin
         $videoData = $this->videoDataLoader->loadForProductIds($productIds, $storeId);
         foreach ($collection as $product) {
             $id = (int) $product->getId();
-            if (isset($videoData[$id])) {
-                $product->setData('rp_listing_video', $videoData[$id]);
-            }
+            /*
+             * Marcar SIEMPRE, incluso los que no tienen video, usando `false`
+             * como "el batch ya resolvió que no hay video". Antes se seteaba
+             * sólo en el hit, con lo cual un producto sin video quedaba
+             * indistinguible de "el batch nunca corrió" y ImagePlugin caía a
+             * loadVideoDataDirect() — una query con 4 JOINs por cada card sin
+             * video. En un listado de 24 productos sin video eso eran 24
+             * queries extra por request.
+             */
+            $product->setData('rp_listing_video', $videoData[$id] ?? false);
         }
         $collection->setFlag('rp_video_enriched', true);
 
