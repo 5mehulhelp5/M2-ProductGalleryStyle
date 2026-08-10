@@ -10,13 +10,16 @@
  * without depending on the larger `Rollpix_ConfigurableGallery` module.
  *
  * Matching respects Magento's per-attribute
- * "Update Product Preview Image" flag (update_product_preview_image).
- * On a configurable with e.g. color + size where only color has the
- * flag on, switching size keeps the current image. If no attribute has
- * the flag on (legacy catalogs), only the first attribute by display
- * position drives the swap — typically `color` — so picking it alone
- * is enough to swap the gallery without forcing the merchant to touch
- * admin flags.
+ * "Update Product Preview Image" flag (update_product_preview_image),
+ * read from `jsonSwatchConfig` — the only place that flag reaches the
+ * frontend (WE-55961). On a configurable with e.g. color + size where
+ * only color has the flag on, switching size keeps the current image;
+ * when both have it on, each axis narrows the match and switching size
+ * swaps the gallery too. If no attribute has the flag on (legacy
+ * catalogs), only the first attribute by display position drives the
+ * swap — typically `color` — so picking it alone is enough to swap the
+ * gallery without forcing the merchant to touch admin flags. A partial
+ * selection still swaps, resolving to the first matching child.
  *
  * On a swap this rebuilds both the main images (.rp-gallery-images) and
  * the thumbnail strip (.rp-thumbnail-item) from jsonConfig.images[pid],
@@ -152,14 +155,17 @@ define(['jquery'], function ($) {
 
             // ----------------------------------------------------------
             // Walk the swatch UI and determine which child product(s)
-            // match every currently-selected *preview-relevant* attribute.
+            // match the currently-selected *preview-relevant* attributes.
             //
             // "Preview-relevant" = attributes whose admin flag
             // `update_product_preview_image` is set to Yes. On a
             // configurable with e.g. color + size where only color opts
             // into preview updates, picking a different size is expected
             // to keep the current image — so size is ignored when
-            // computing the match.
+            // computing the match. When BOTH opt in (the usual setup on
+            // catalogs with one photo per color *and* per size), each
+            // axis narrows the match further and switching size swaps the
+            // gallery too (WE-55961).
             //
             // Legacy fallback: if NO attribute opts in (catalogs where
             // the merchant never touched the flag), only the first
@@ -170,58 +176,71 @@ define(['jquery'], function ($) {
             // are ignored. Multiple children share a color, so picking
             // the first match is safe — they share the same image set.
             //
-            // Returns null if no option is selected or if the current
-            // selection of preview-relevant attributes is partial.
+            // A *partial* selection of preview-relevant attributes still
+            // matches (on the axes chosen so far) and resolves to the
+            // first child in `index` order. That keeps the pre-WE-55961
+            // behaviour where picking color alone already swaps the
+            // gallery, instead of forcing the shopper to complete every
+            // axis before seeing the right photo.
+            //
+            // Returns null when no preview-relevant option is selected.
             // ----------------------------------------------------------
             _rpMatchedProducts: function () {
                 var widget = this;
                 var jsonConfig = (this.options && this.options.jsonConfig) || {};
-                var jsonAttrs = jsonConfig.attributes || {};
 
+                var $attrs = this.element.find(
+                    '.' + this.options.classes.attributeClass
+                );
+
+                var attrIds = [];
+                $attrs.each(function () {
+                    var attrId = $(this).data('attribute-id');
+
+                    if (attrId !== undefined && attrId !== null && attrId !== '') {
+                        attrIds.push(String(attrId));
+                    }
+                });
+
+                if (!attrIds.length) {
+                    return null;
+                }
+
+                var optIn = {};
                 var hasOptIn = false;
-                $.each(jsonAttrs, function (_, meta) {
-                    if (widget._rpAttrUpdatesPreview(meta)) {
+
+                attrIds.forEach(function (attrId) {
+                    optIn[attrId] = widget._rpAttrUpdatesPreview(attrId);
+
+                    if (optIn[attrId]) {
                         hasOptIn = true;
-                        return false;
                     }
                 });
 
                 var selected = {};
                 var relevantCount = 0;
                 var selectedCount = 0;
-                var legacyFirstAttrId = null;
 
-                this.element
-                    .find('.' + this.options.classes.attributeClass)
-                    .each(function () {
-                        var $attr = $(this);
-                        var attrId = $attr.data('attribute-id');
-                        var attrMeta = jsonAttrs[attrId] || {};
+                $attrs.each(function () {
+                    var $attr = $(this);
+                    var attrId = String($attr.data('attribute-id'));
+                    var isRelevant = hasOptIn ? optIn[attrId] : attrId === attrIds[0];
 
-                        if (hasOptIn) {
-                            if (!widget._rpAttrUpdatesPreview(attrMeta)) {
-                                return;
-                            }
-                        } else {
-                            if (legacyFirstAttrId === null) {
-                                legacyFirstAttrId = attrId;
-                            }
-                            if (attrId !== legacyFirstAttrId) {
-                                return;
-                            }
-                        }
+                    if (!isRelevant) {
+                        return;
+                    }
 
-                        relevantCount++;
-                        var $opt = $attr.find(
-                            '.' + widget.options.classes.optionClass + '.selected'
-                        );
-                        if ($opt.length) {
-                            selected[attrId] = String($opt.data('option-id'));
-                            selectedCount++;
-                        }
-                    });
+                    relevantCount++;
+                    var $opt = $attr.find(
+                        '.' + widget.options.classes.optionClass + '.selected'
+                    );
+                    if ($opt.length) {
+                        selected[attrId] = String($opt.data('option-id'));
+                        selectedCount++;
+                    }
+                });
 
-                if (!relevantCount || selectedCount < relevantCount) {
+                if (!relevantCount || !selectedCount) {
                     return null;
                 }
 
@@ -245,23 +264,83 @@ define(['jquery'], function ($) {
             },
 
             // ----------------------------------------------------------
+            // Collect every metadata object that may carry the admin flag
+            // for a given attribute id.
+            //
+            // Two traps make a naive `jsonConfig.attributes[attrId]`
+            // lookup return `undefined` — which is what made every
+            // catalog fall through to the legacy single-attribute path
+            // (WE-55961):
+            //
+            //   1. `jsonSwatchConfig` — NOT `jsonConfig.attributes` — is
+            //      where the swatch block emits `additional_data`, and
+            //      that string is the only place the flag travels to the
+            //      frontend (see `_rpAttrUpdatesPreview`).
+            //   2. By the time this mixin runs, the stock swatch-renderer
+            //      has already re-keyed `jsonConfig.attributes` into a
+            //      position-ordered array (`{0: …, 1: …}`), so the
+            //      attribute id is no longer a valid key there — it only
+            //      survives as the `id` property of each entry.
+            //
+            // Both sources are returned so the caller can OR them: the
+            // flag is a single admin checkbox, and neither source ever
+            // reports Yes on its own initiative.
+            // ----------------------------------------------------------
+            _rpAttrMetas: function (attrId) {
+                var opts = this.options || {};
+                var metas = [];
+                var swatchConfig = opts.jsonSwatchConfig || {};
+                var jsonAttrs = (opts.jsonConfig && opts.jsonConfig.attributes) || {};
+
+                if (swatchConfig[attrId]) {
+                    metas.push(swatchConfig[attrId]);
+                }
+
+                $.each(jsonAttrs, function (key, meta) {
+                    if (!meta) {
+                        return;
+                    }
+                    if (String(meta.id) === attrId || String(key) === attrId) {
+                        metas.push(meta);
+                    }
+                });
+
+                return metas;
+            },
+
+            // ----------------------------------------------------------
             // Read Magento's admin flag `update_product_preview_image`
-            // from the swatch jsonConfig.
+            // for an attribute id.
             //
             // Stock Magento's Swatches helper packs the flag into the
             // serialized `additional_data` field on save
             // (Swatches\Helper\Data::assembleAdditionalDataEavAttribute)
             // and never unpacks it back to a top-level key on load — so
-            // in jsonConfig.attributes[id] we usually find the flag only
-            // inside a JSON string at `additional_data`. We read the
-            // top-level key first as a defensive fallback (third-party
-            // customisations sometimes flatten it) and then parse
-            // `additional_data`.
+            // we usually find the flag only inside a JSON string at
+            // `additional_data`. We read the top-level key first as a
+            // defensive fallback (third-party customisations sometimes
+            // flatten it) and then parse `additional_data`.
             //
             // In Magento admin the checkbox is stored as "1" when on and
             // is omitted entirely when off, so treat a missing key as No.
             // ----------------------------------------------------------
-            _rpAttrUpdatesPreview: function (meta) {
+            _rpAttrUpdatesPreview: function (attrId) {
+                var widget = this;
+                var optsIn = false;
+
+                this._rpAttrMetas(String(attrId)).forEach(function (meta) {
+                    if (!optsIn && widget._rpMetaUpdatesPreview(meta)) {
+                        optsIn = true;
+                    }
+                });
+
+                return optsIn;
+            },
+
+            // ----------------------------------------------------------
+            // Flag lookup on a single metadata object.
+            // ----------------------------------------------------------
+            _rpMetaUpdatesPreview: function (meta) {
                 if (!meta) {
                     return false;
                 }
