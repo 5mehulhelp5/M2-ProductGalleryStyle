@@ -1,3 +1,41 @@
+## What's New in 1.9.2
+
+### Fixed — Changing the second attribute (size) never changed the gallery
+
+On a configurable PDP with the swatch bridge enabled and **two variable attributes** (e.g. `color` + `talle`), picking a different **size** kept showing the previous variant's photo, even though every child SKU had its own images and **both** attributes had `Update Product Preview Image = Yes` in the admin ([WE-55961](https://we.rollpix.app/tickets/WE-55961), Bordoli). With a single variable attribute it worked, which made it look like a catalog/image-upload problem.
+
+**Root cause**: `swatch-gallery-bridge.js` read the `update_product_preview_image` flag from `jsonConfig.attributes[<attributeId>]` — where it is never present. Two independent reasons:
+
+1. Stock Magento serializes the flag into `additional_data` and emits it in **`jsonSwatchConfig`**, not in `jsonConfig.attributes`.
+2. By the time the mixin runs, the stock swatch-renderer has already re-keyed `jsonConfig.attributes` into a position-ordered array (`{0: …, 1: …}`), so an attribute-id lookup there returns `undefined` regardless.
+
+So `hasOptIn` evaluated to `false` on **every** catalog and the v1.8.6 legacy fallback always kicked in: only the first attribute by position (typically color) drove the swap, and size was ignored **by design**. The per-attribute flag was, in practice, dead code.
+
+**Fix**:
+
+1. New `_rpAttrMetas(attrId)` resolves an attribute's metadata from **both** sources — `jsonSwatchConfig[attrId]` and `jsonConfig.attributes`, the latter scanned by each entry's `id` property so it survives the re-keying.
+2. `_rpAttrUpdatesPreview(attrId)` now takes an id and ORs the flag across those sources; the single-object lookup moved to `_rpMetaUpdatesPreview(meta)`.
+3. `_rpMatchedProducts()` collects the attribute ids from the DOM once, decides opt-in per id, and matches on the preview-relevant axes.
+
+### Changed — A partial selection now swaps too
+
+Previously (per the 1.8.6 matrix) a catalog where **all** attributes carried the flag required every axis to be selected before the gallery moved. With the flag finally readable, keeping that strict path would have been a visible regression: picking a color would no longer preview that color until a size was chosen too. So a partial selection of preview-relevant attributes now matches on the axes chosen so far and resolves to the first matching child — the same shopper-facing behavior the legacy fallback provided.
+
+| Admin config | Before (≤ 1.9.1, as documented) | After (1.9.2) |
+|---|---|---|
+| No attribute has the flag (legacy) | Only the first attribute (typically color) | Unchanged |
+| Color has the flag, size doesn't | Color alone swaps; size ignored | Unchanged |
+| All attributes have the flag | All must be selected | Swaps with whatever is selected; each axis narrows the match |
+
+In practice only the first row ever executed, since the flag could not be read at all.
+
+Verified on production (`PP-TSVTSLBRI`, 34 colors × 5 sizes): color alone still swaps; each size swaps to its own child images **and** thumbnail strip; changing color with a size already chosen resolves the right combination; deselecting restores the parent gallery; a single-attribute configurable is unaffected. **JS-only change** — no PHP / template / layout / CSS / admin changes; behavior with the bridge disabled (the default) is unchanged.
+
+#### Files
+- `view/frontend/web/js/swatch-gallery-bridge.js` — flag resolution by attribute id across `jsonSwatchConfig` + `jsonConfig.attributes`; partial-selection matching; updated header docs
+
+---
+
 ## What's New in 1.9.0
 
 ### Fixed — Slider / thumbnails / mobile carousel / zoom broke after a variant change (and across mobile↔desktop resizes)

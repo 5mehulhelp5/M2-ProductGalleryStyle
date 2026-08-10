@@ -8,6 +8,29 @@ El formato sigue [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/) y e
 
 ---
 
+## [1.9.2] — 2026-08-10
+
+### Fixed
+
+- **`fix(configurable)`**: en un configurable con **dos ejes (ej. color + talle)**, cambiar el **talle nunca cambiaba las imágenes** aunque cada hijo tuviera su propia foto y ambos atributos tuvieran `Update Product Preview Image = Sí` en el admin ([WE-55961](https://we.rollpix.app/tickets/WE-55961), Bordoli). Con un solo eje funcionaba bien, lo que hacía parecer un problema de carga de imágenes del catálogo.
+  - Causa: `swatch-gallery-bridge.js` leía el flag `update_product_preview_image` desde `jsonConfig.attributes[<id>]`, donde **nunca está**. Magento lo serializa en `additional_data` y lo emite en **`jsonSwatchConfig`**; encima, para cuando corre el mixin el swatch-renderer nativo ya reindexó `jsonConfig.attributes` como array por posición (`{0: …, 1: …}`), así que el acceso por id de atributo devuelve `undefined` de todas formas. Resultado: `hasOptIn` daba `false` en **todos** los catálogos y siempre se aplicaba el fallback legacy de 1.8.6 — sólo el primer atributo por posición (típicamente color) movía la galería, y el talle quedaba ignorado por diseño.
+  - Fix: nuevo `_rpAttrMetas()` que resuelve la metadata del atributo por id contra **ambas** fuentes (`jsonSwatchConfig` y `jsonConfig.attributes`, esta última recorrida por la propiedad `id` para sobrevivir al reindexado). `_rpAttrUpdatesPreview()` pasa a recibir un id y hace OR entre las fuentes; la lectura del flag sobre un objeto suelto queda en `_rpMetaUpdatesPreview()`.
+  - Verificado en producción sobre `PP-TSVTSLBRI` (34 colores × 5 tamaños): cada talle ahora trae su propia foto y su strip de thumbnails, y cambiar el color con el talle ya elegido resuelve la combinación correcta.
+
+### Changed
+
+- **`change(configurable)`**: una selección **parcial** de los atributos preview-relevantes ahora también cambia la galería, resolviendo al primer hijo que matchea, en vez de esperar a que estén todos los ejes elegidos. Antes esto sólo pasaba por el fallback legacy; con el flag ya legible (ver arriba), mantenerlo estricto habría sido una regresión visible — elegir el color habría dejado de mostrar la foto de ese color hasta elegir también el talle. La matriz de comportamiento documentada en 1.8.6 cambia en su última fila:
+
+  | Config del admin | Antes (≤ 1.9.1, según la doc) | Ahora (1.9.2) |
+  |---|---|---|
+  | Ningún atributo con el flag (legacy) | Sólo el primero (típicamente color) | Sin cambios |
+  | Color con el flag, talle sin él | Color solo cambia; talle ignorado | Sin cambios |
+  | Todos los atributos con el flag | Había que elegirlos todos | Cambia con lo que haya elegido; cada eje afina el match |
+
+  En la práctica la última fila nunca se ejecutaba: el flag no se podía leer, así que todo caía en la primera.
+
+---
+
 ## [1.9.1] — 2026-07-28
 
 ### Fixed
