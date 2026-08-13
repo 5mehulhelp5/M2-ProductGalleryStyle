@@ -8,6 +8,25 @@ El formato sigue [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/) y e
 
 ---
 
+## [1.9.3] — 2026-08-13
+
+### Fixed
+
+- **`fix(configurable)`**: en un configurable de **un solo eje** cuyo atributo tiene `Update Product Preview Image = **No**`, cada click en el talle **reconstruía la galería igual**: se veían los rectángulos grises del shimmer y se volvían a pedir todas las imágenes, en un catálogo que había pedido explícitamente lo contrario ([WE-56006](https://we.rollpix.app/tickets/WE-56006), Popper). Medido en `SALOMON ZAPATILLA OUTWAY CSWP`: **5 placeholders grises y 10 requests / 364 KB por cada talle** (las mismas 5 fotos en dos presets de caché), ~1 s con caché tibia y varios segundos en frío.
+  - Causa: `_rpMatchedProducts()` decidía con un booleano — `hasOptIn ? optIn[attrId] : attrId === attrIds[0]`. Ese `hasOptIn === false` mezclaba dos situaciones que no son lo mismo: **"nadie tocó el flag"** (catálogo legacy, donde el fallback al primer atributo por posición es deseable) y **"el merchant dijo No"**. Con un único eje, el fallback lo elegía a él, así que el opt-out explícito quedaba pisado. El flag de `talle` viaja como `"update_product_preview_image":"0"` dentro de `additional_data` — presente y en cero, no ausente — de modo que la premisa de 1.9.2 ("el checkbox se omite cuando está en No") no se cumple en este catálogo.
+  - Fix: la lectura del flag pasa a ser **tri-estado** (`true` / `false` / `null` cuando no viaja) en `_rpAttrPreviewFlag()` y `_rpMetaPreviewFlag()`; `_rpAttrUpdatesPreview()` y `_rpMetaUpdatesPreview()` quedan como envoltorios booleanos para no cambiar sus llamadores. El fallback legacy ya no toma "el primer atributo" sino **el primero que no se declaró en No**, así que un configurable de un solo eje que optó por No se queda sin eje de preview y la galería no se toca.
+  - Verificado en el dev de Popper: en el producto del ticket, cuatro cambios de talle seguidos dan **0 grises, 0 requests, 0 KB** y la galería queda intacta; en `ANSILTA CAMPERA CICLON 2` (color + talle, color con el flag en Sí) cambiar **color sí** reconstruye (3 items, 6 requests) y cambiar **talle no** (0 y 0). Harness aislado de la lógica de decisión: **11/11**, incluidos los caminos de 1.9.2 y el fallback legacy.
+
+  La matriz de comportamiento gana una fila:
+
+  | Config del admin | 1.9.2 | Ahora (1.9.3) |
+  |---|---|---|
+  | Ningún atributo con el flag (legacy) | Sólo el primero por posición | Sin cambios |
+  | Color con el flag en Sí, talle en No | Color solo cambia; talle ignorado | Sin cambios |
+  | Todos los atributos con el flag en Sí | Cambia con lo que haya elegido | Sin cambios |
+  | **Único eje con el flag en No** | **Cambiaba en cada click** | **No cambia** |
+  | **Todos los ejes en No** | Cambiaba con el primero | No cambia |
+
 ## [1.9.2] — 2026-08-10
 
 ### Fixed
