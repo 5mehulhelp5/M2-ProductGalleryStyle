@@ -169,8 +169,12 @@ define(['jquery'], function ($) {
             //
             // Legacy fallback: if NO attribute opts in (catalogs where
             // the merchant never touched the flag), only the first
-            // attribute by DOM/position order is preview-relevant —
-            // typically `color` on a color+size configurable. Picking
+            // attribute by DOM/position order **that did not explicitly
+            // opt out** is preview-relevant — typically `color` on a
+            // color+size configurable. An attribute whose flag is a stated
+            // No is skipped, so a size-only configurable that opted out
+            // ends up with no preview axis at all and the gallery is left
+            // alone (WE-56006). Picking
             // color alone resolves to the first child SKU that matches
             // and swaps the gallery; sibling attributes (size, length…)
             // are ignored. Multiple children share a color, so picking
@@ -208,12 +212,27 @@ define(['jquery'], function ($) {
 
                 var optIn = {};
                 var hasOptIn = false;
+                var fallbackAttrId = null;
 
                 attrIds.forEach(function (attrId) {
-                    optIn[attrId] = widget._rpAttrUpdatesPreview(attrId);
+                    var flag = widget._rpAttrPreviewFlag(attrId);
 
-                    if (optIn[attrId]) {
+                    optIn[attrId] = flag === true;
+
+                    if (flag === true) {
                         hasOptIn = true;
+                    }
+
+                    // Candidate for the legacy fallback below: the first
+                    // attribute that did NOT explicitly opt out. An
+                    // attribute whose flag is a stated No must never become
+                    // the preview axis by default — that is what made every
+                    // size click rebuild the gallery on a size-only
+                    // configurable. An absent flag stays eligible, which is
+                    // what keeps untouched catalogs swapping on color.
+                    // (WE-56006)
+                    if (fallbackAttrId === null && flag !== false) {
+                        fallbackAttrId = attrId;
                     }
                 });
 
@@ -224,7 +243,7 @@ define(['jquery'], function ($) {
                 $attrs.each(function () {
                     var $attr = $(this);
                     var attrId = String($attr.data('attribute-id'));
-                    var isRelevant = hasOptIn ? optIn[attrId] : attrId === attrIds[0];
+                    var isRelevant = hasOptIn ? optIn[attrId] : attrId === fallbackAttrId;
 
                     if (!isRelevant) {
                         return;
@@ -321,28 +340,64 @@ define(['jquery'], function ($) {
             // defensive fallback (third-party customisations sometimes
             // flatten it) and then parse `additional_data`.
             //
-            // In Magento admin the checkbox is stored as "1" when on and
-            // is omitted entirely when off, so treat a missing key as No.
+            // In Magento admin the checkbox is stored as "1" when on. It is
+            // sometimes omitted when off and sometimes serialized as "0" —
+            // and that difference matters, see `_rpAttrPreviewFlag`.
             // ----------------------------------------------------------
             _rpAttrUpdatesPreview: function (attrId) {
+                return this._rpAttrPreviewFlag(attrId) === true;
+            },
+
+            // ----------------------------------------------------------
+            // Same lookup, but tri-state: `true` (Yes), `false` (the admin
+            // explicitly said No) or `null` (the flag never reached the
+            // frontend, so we know nothing).
+            //
+            // The distinction drives the legacy fallback in
+            // `_rpMatchedProducts`. Collapsing "said No" into "didn't say"
+            // made the fallback override an explicit merchant decision: on
+            // a size-only configurable with the flag serialized as "0",
+            // size was still treated as the preview axis, so every size
+            // click rebuilt the gallery — shimmer placeholders plus a
+            // re-fetch of every image — on a catalog that had asked for
+            // exactly the opposite. (WE-56006)
+            // ----------------------------------------------------------
+            _rpAttrPreviewFlag: function (attrId) {
                 var widget = this;
-                var optsIn = false;
+                var flag = null;
 
                 this._rpAttrMetas(String(attrId)).forEach(function (meta) {
-                    if (!optsIn && widget._rpMetaUpdatesPreview(meta)) {
-                        optsIn = true;
+                    if (flag === true) {
+                        return;
+                    }
+
+                    var metaFlag = widget._rpMetaPreviewFlag(meta);
+
+                    // Yes wins over No, and No wins over "not stated": the
+                    // flag is one admin checkbox and no source reports Yes
+                    // on its own initiative.
+                    if (metaFlag !== null) {
+                        flag = metaFlag;
                     }
                 });
 
-                return optsIn;
+                return flag;
             },
 
             // ----------------------------------------------------------
             // Flag lookup on a single metadata object.
             // ----------------------------------------------------------
             _rpMetaUpdatesPreview: function (meta) {
+                return this._rpMetaPreviewFlag(meta) === true;
+            },
+
+            // ----------------------------------------------------------
+            // Tri-state flag lookup on a single metadata object:
+            // `true` / `false` / `null` when the key is absent.
+            // ----------------------------------------------------------
+            _rpMetaPreviewFlag: function (meta) {
                 if (!meta) {
-                    return false;
+                    return null;
                 }
 
                 var direct = meta.update_product_preview_image;
@@ -357,14 +412,18 @@ define(['jquery'], function ($) {
                 if (typeof addl === 'string' && addl.length) {
                     try {
                         var parsed = JSON.parse(addl);
-                        var flag = parsed && parsed.update_product_preview_image;
-                        return flag === 1 || flag === '1' || flag === true;
+
+                        if (parsed && parsed.update_product_preview_image !== undefined) {
+                            var flag = parsed.update_product_preview_image;
+
+                            return flag === 1 || flag === '1' || flag === true;
+                        }
                     } catch (e) {
-                        /* malformed — treat as no opt-in */
+                        /* malformed — treat as not stated */
                     }
                 }
 
-                return false;
+                return null;
             },
 
             // ----------------------------------------------------------
