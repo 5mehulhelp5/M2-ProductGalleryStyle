@@ -1,0 +1,5 @@
+"Sticky Element","Elemento fijo"
+"Product info panel","Panel de info del producto"
+"Image gallery","Galería de imágenes"
+"Keep one column fixed while the other one scrolls","Mantener una columna fija mientras la otra scrollea"
+"Info panel: stays fixed while scrolling through images (galleries longer than the info). Image gallery: stays fixed while scrolling through the description (info longer than the gallery). Desktop only; it releases at the end of the product block. A gallery taller than the screen sticks by its bottom edge.","Panel de info: queda fijo mientras se recorren las imágenes (galerías más largas que la info). Galería de imágenes: queda fija mientras se recorre la descripción (info más larga que la galería). Sólo en desktop; se suelta al final del bloque del producto. Si la galería es más alta que la pantalla, se pega por abajo."

@@ -609,6 +609,19 @@
     box-sizing: border-box;
 }
 
+/* Gallery column - sticky (Sticky Element = Image gallery).
+   Desktop only: on mobile the carousel owns the gallery position.
+   `top` is rewritten by gallery-sticky.js when the gallery is taller
+   than the viewport, so its lower edge (thumbnails) stays reachable. */
+@media screen and (min-width: 768px) {
+    .rp-product-wrapper > .rp-product-gallery.rp-sticky-gallery {
+        position: -webkit-sticky;
+        position: sticky;
+        top: var(--rp-sticky-offset);
+        align-self: start;
+    }
+}
+
 /* Reset Luma/Hyva width restrictions on product info inside our wrapper */
 .catalog-product-view.page-layout-1column .rp-product-wrapper .product-info-main,
 .catalog-product-view .rp-product-wrapper .product-info-main {

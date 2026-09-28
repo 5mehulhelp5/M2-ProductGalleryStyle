@@ -1,0 +1,5 @@
+"Sticky Element","Sticky Element"
+"Product info panel","Product info panel"
+"Image gallery","Image gallery"
+"Keep one column fixed while the other one scrolls","Keep one column fixed while the other one scrolls"
+"Info panel: stays fixed while scrolling through images (galleries longer than the info). Image gallery: stays fixed while scrolling through the description (info longer than the gallery). Desktop only; it releases at the end of the product block. A gallery taller than the screen sticks by its bottom edge.","Info panel: stays fixed while scrolling through images (galleries longer than the info). Image gallery: stays fixed while scrolling through the description (info longer than the gallery). Desktop only; it releases at the end of the product block. A gallery taller than the screen sticks by its bottom edge."
