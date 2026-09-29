@@ -57,4 +57,10 @@ Producto `fox-non-stop-fleece-n31676`, config `sticky/enabled=1`, `target=galler
 Confirmo que verifiqué personalmente todos los ítems marcados arriba.
 El módulo está listo para peer review.
 
-**Firmado:** _(pendiente — Lautaro Martinez)_
+**Firmado:** Lautaro Martinez — 2026-09-29
+
+---
+
+## Peer review
+
+**No hubo peer review.** Lautaro Martinez decidió publicar 1.10.0 sin reviewer el 2026-09-29, porque el cliente aprobó en stage y pidió el pase a prod (WE-57003). La deuda de estándar previa queda en `docs/TASKS.md`.

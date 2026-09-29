@@ -16,6 +16,6 @@ Cada entrada documenta qué se deployó, cuándo, quién, y el resultado de la v
 **Qué se está probando:**
 Galería fija en la PDP mientras scrollea la descripción (WE-57003), incluida una galería más alta que la pantalla.
 
-**Estado:** ⏳ Pendiente de validación (QA)
+**Estado:** ✅ OK — aprobado por el cliente (Lisandro Badie, WE-57003, 2026-09-29: "Excelente! vamos con esta opción")
 
-**Resultado:** verificación del builder en `fox-non-stop-fleece-n31676`. A 1280×900 la galería queda fija a 161 px y se suelta al final de `.rp-product-wrapper`. A 1366×657, al bajar queda `top=-53` (bottom 637, miniaturas visibles) y al subir vuelve a 161. A 390×844 sigue el carrusel sticky de siempre, sin `top` inline. Info panel `static`. Consola sin errores nuevos (sólo One Tap y el pixel de Meta, igual que en prod). _Falta el OK de QA._
+**Resultado:** verificación del builder en `fox-non-stop-fleece-n31676`. A 1280×900 la galería queda fija a 161 px y se suelta al final de `.rp-product-wrapper`. A 1366×657, al bajar queda `top=-53` (bottom 637, miniaturas visibles) y al subir vuelve a 161. A 390×844 sigue el carrusel sticky de siempre, sin `top` inline. Info panel `static`. Consola sin errores nuevos (sólo One Tap y el pixel de Meta, igual que en prod).
