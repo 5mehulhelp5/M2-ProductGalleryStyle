@@ -8,6 +8,15 @@ El formato sigue [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/) y e
 
 ---
 
+## [1.10.0] — 2026-09-29
+
+### Added
+
+- **`feat(sticky)`**: nueva opción **Elemento fijo** (`rollpix_gallery/sticky/target`: `info` | `gallery`, por defecto `info`) en *Sticky Panel Settings*. Con **Galería de imágenes**, en desktop (≥ 768 px) la galería queda fija mientras se scrollea la descripción y el panel de info deja de ser sticky. La galería se suelta al final de `.rp-product-wrapper`, así que no se monta sobre lo que viene abajo ([WE-57003](https://we.rollpix.app/tickets/WE-57003), Marcovecchio: layout `slider` con tabs inline, galería de 683 px contra una ficha de 2443 px).
+  - Si la galería es **más alta que la pantalla**, `js/gallery-sticky.js` reescribe el `top` según la dirección del scroll: al bajar se pega por abajo (miniaturas visibles) y al subir vuelve al offset. Con una regla CSS sola, a 1366×657 la galería de 690 px quedaba cortada a la altura de las miniaturas durante todo el scroll.
+  - `js/gallery-sticky.js` estaba mapeado como `rpStickyScroll` pero no lo inicializaba nadie. Ahora recibe la columna a fijar por config, no hace nada en mobile y escucha con `ResizeObserver` en vez de `MutationObserver`, que con el slider se disparaba en cada transform. Sólo se inicializa con **Galería de imágenes**: el comportamiento del panel de info no cambia.
+  - *Modo Sticky* (Frame / Scroll natural) queda visible sólo con **Panel de info**, que es el único al que aplica.
+
 ## [1.9.3] — 2026-08-13
 
 ### Fixed

@@ -1,9 +1,13 @@
 /**
  * Rollpix ProductGallery - Sticky Scroll Component
  *
- * Scroll-direction-aware sticky: the info panel starts fixed at the top
- * (showing the title). As the user scrolls down, the panel gradually
- * reveals lower content. When scrolling up, it returns to the top.
+ * Scroll-direction-aware sticky for the column chosen in
+ * Sticky Element (info panel or image gallery). The panel starts
+ * fixed at the top offset. When it is taller than the viewport,
+ * scrolling down gradually reveals its lower part and scrolling up
+ * brings the top back, so no part of it is ever unreachable.
+ *
+ * The `position: sticky` itself comes from CSS; this only adjusts `top`.
  *
  * @category  Rollpix
  * @package   Rollpix_ProductGallery
@@ -14,55 +18,80 @@ define([
 ], function ($) {
     'use strict';
 
-    return function (config, element) {
-        var $wrapper = $(element);
-        var $infoPanel = $wrapper.find('.product-info-main');
-        var stickyOffset = config.sticky ? config.sticky.offset : 20;
+    var TARGET_GALLERY = 'gallery',
+        DESKTOP_QUERY = '(min-width: 768px)',
+        DEFAULT_OFFSET = 20,
+        BOTTOM_MARGIN = 20;
 
-        if (!$infoPanel.length) {
+    return function (config, element) {
+        var sticky = config.sticky || {},
+            stickyOffset = typeof sticky.offset === 'number' ? sticky.offset : DEFAULT_OFFSET,
+            $element = $(element),
+            $wrapper = $element.closest('.rp-product-wrapper'),
+            $panel,
+            desktop = window.matchMedia(DESKTOP_QUERY),
+            lastScrollTop = window.pageYOffset,
+            currentTop = stickyOffset,
+            ticking = false;
+
+        if (!$wrapper.length) {
+            $wrapper = $element;
+        }
+
+        $panel = sticky.target === TARGET_GALLERY
+            ? $element
+            : $wrapper.find('.product-info-main');
+
+        if (!$panel.length) {
             return;
         }
 
-        var lastScrollTop = window.pageYOffset;
-        var currentTop = stickyOffset;
-        var ticking = false;
+        function setTop(value) {
+            $panel.css('top', Math.round(value) + 'px');
+        }
 
         function handleScroll() {
-            var scrollTop = window.pageYOffset;
-            var panelHeight = $infoPanel.outerHeight();
-            var viewportHeight = window.innerHeight;
+            var scrollTop = window.pageYOffset,
+                panelHeight,
+                viewportHeight,
+                scrollDelta;
+
+            if (!desktop.matches) {
+                $panel.css('top', '');
+                lastScrollTop = scrollTop;
+                return;
+            }
+
+            panelHeight = $panel.outerHeight();
+            viewportHeight = window.innerHeight;
 
             // Panel fits in viewport - simple sticky at top
             if (panelHeight <= viewportHeight - stickyOffset) {
-                $infoPanel.css('top', stickyOffset + 'px');
-                lastScrollTop = scrollTop;
-                return;
-            }
-
-            // Check if panel is in sticky zone (wrapper top is above offset)
-            var wrapperRect = $wrapper[0].getBoundingClientRect();
-            if (wrapperRect.top >= stickyOffset) {
-                // Not sticky yet - keep at top
                 currentTop = stickyOffset;
-                $infoPanel.css('top', currentTop + 'px');
+                setTop(currentTop);
                 lastScrollTop = scrollTop;
                 return;
             }
 
-            // Adjust top based on scroll direction and delta
-            var scrollDelta = scrollTop - lastScrollTop;
-            var minTop = -(panelHeight - viewportHeight);
-            var maxTop = stickyOffset;
+            // Not sticky yet - keep at top
+            if ($wrapper[0].getBoundingClientRect().top >= stickyOffset) {
+                currentTop = stickyOffset;
+                setTop(currentTop);
+                lastScrollTop = scrollTop;
+                return;
+            }
 
-            currentTop = currentTop - scrollDelta;
-            currentTop = Math.max(minTop, Math.min(maxTop, currentTop));
+            scrollDelta = scrollTop - lastScrollTop;
+            currentTop = Math.max(
+                viewportHeight - panelHeight - BOTTOM_MARGIN,
+                Math.min(stickyOffset, currentTop - scrollDelta)
+            );
 
-            $infoPanel.css('top', Math.round(currentTop) + 'px');
+            setTop(currentTop);
             lastScrollTop = scrollTop;
         }
 
-        // Scroll event with requestAnimationFrame for performance
-        window.addEventListener('scroll', function () {
+        function schedule() {
             if (!ticking) {
                 requestAnimationFrame(function () {
                     handleScroll();
@@ -70,26 +99,27 @@ define([
                 });
                 ticking = true;
             }
-        }, { passive: true });
+        }
 
-        // Initial calculation
-        handleScroll();
+        window.addEventListener('scroll', schedule, { passive: true });
 
-        // Recalculate on resize
         $(window).on('resize.rpsticky', function () {
             currentTop = stickyOffset;
-            handleScroll();
+            schedule();
         });
 
-        // Recalculate when content might change (tabs, swatches, etc.)
-        var observer = new MutationObserver(function () {
-            handleScroll();
-        });
+        // Height changes (images loading, tabs opening, swatch switches).
+        // ResizeObserver avoids reacting to the slider's constant
+        // transform/attribute mutations.
+        if (typeof window.ResizeObserver === 'function') {
+            new window.ResizeObserver(schedule).observe($panel[0]);
+        } else {
+            new MutationObserver(schedule).observe($panel[0], {
+                childList: true,
+                subtree: true
+            });
+        }
 
-        observer.observe($infoPanel[0], {
-            childList: true,
-            subtree: true,
-            attributes: true
-        });
+        handleScroll();
     };
 });

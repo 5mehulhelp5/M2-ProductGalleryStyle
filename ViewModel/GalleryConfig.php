@@ -106,6 +106,11 @@ class GalleryConfig implements ArgumentInterface
         return $this->config->getStickyOffset();
     }
 
+    public function getStickyTarget(): string
+    {
+        return $this->config->getStickyTarget();
+    }
+
     public function isInlineTabsEnabled(): bool
     {
         return $this->config->isInlineTabsEnabled();

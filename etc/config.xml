@@ -45,6 +45,7 @@
                 <enabled>1</enabled>
                 <mode>scroll</mode>
                 <offset>20</offset>
+                <target>info</target>
             </sticky>
             <!-- Effects Settings -->
             <effects>

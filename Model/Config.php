@@ -12,6 +12,7 @@ namespace Rollpix\ProductGallery\Model;
 
 use Magento\Framework\App\Config\ScopeConfigInterface;
 use Magento\Store\Model\ScopeInterface;
+use Rollpix\ProductGallery\Model\Config\Source\StickyTarget;
 
 class Config
 {
@@ -30,6 +31,7 @@ class Config
     private const XML_PATH_STICKY_ENABLED = 'rollpix_gallery/sticky/enabled';
     private const XML_PATH_STICKY_MODE = 'rollpix_gallery/sticky/mode';
     private const XML_PATH_STICKY_OFFSET = 'rollpix_gallery/sticky/offset';
+    private const XML_PATH_STICKY_TARGET = 'rollpix_gallery/sticky/target';
     private const XML_PATH_TABS_INLINE_ENABLED = 'rollpix_gallery/tabs/inline_enabled';
     private const XML_PATH_TABS_DESC_MAX_HEIGHT = 'rollpix_gallery/tabs/description_max_height';
     private const XML_PATH_THUMBNAIL_POSITION = 'rollpix_gallery/layout/thumbnail_position';
@@ -200,6 +202,19 @@ class Config
             ScopeInterface::SCOPE_STORE,
             $storeId
         );
+    }
+
+    public function getStickyTarget(?int $storeId = null): string
+    {
+        $target = (string) $this->scopeConfig->getValue(
+            self::XML_PATH_STICKY_TARGET,
+            ScopeInterface::SCOPE_STORE,
+            $storeId
+        );
+
+        return $target === StickyTarget::TARGET_GALLERY
+            ? StickyTarget::TARGET_GALLERY
+            : StickyTarget::TARGET_INFO;
     }
 
     public function isInlineTabsEnabled(?int $storeId = null): bool
@@ -493,7 +508,8 @@ class Config
             'sticky' => [
                 'enabled' => $this->isStickyEnabled($storeId),
                 'mode' => $this->getStickyMode($storeId),
-                'offset' => $this->getStickyOffset($storeId)
+                'offset' => $this->getStickyOffset($storeId),
+                'target' => $this->getStickyTarget($storeId)
             ],
             'tabs' => [
                 'inlineEnabled' => $this->isInlineTabsEnabled($storeId),

@@ -70,6 +70,8 @@ $mobileBehavior = $galleryConfig->getMobileBehavior();
 $stickyEnabled = $galleryConfig->isStickyEnabled();
 $stickyMode = $galleryConfig->getStickyMode();
 $stickyOffset = $galleryConfig->getStickyOffset();
+$stickyTarget = $galleryConfig->getStickyTarget();
+$stickyGallery = $stickyEnabled && $stickyTarget === 'gallery';
 
 // Disable interactive features for placeholder
 if ($isPlaceholder) {
@@ -89,7 +91,9 @@ if ($isPlaceholder) {
     $wrapperClasses[] = 'rp-placeholder';
 }
 
-if ($stickyEnabled) {
+if ($stickyGallery) {
+    $wrapperClasses[] = 'rp-sticky-gallery';
+} elseif ($stickyEnabled) {
     $wrapperClasses[] = 'rp-sticky-' . $stickyMode;
 }
 
@@ -151,7 +155,7 @@ $gridImageColumns = $columnCss['gridImageColumns'] ?? 2;
         --rp-grid-cols: <?= (int)$gridImageColumns ?>;
         <?php endif; ?>
     }
-    <?php if (!$stickyEnabled): ?>
+    <?php if (!$stickyEnabled || $stickyGallery): ?>
     .rp-product-wrapper .product-info-main {
         position: static !important;
     }
@@ -188,7 +192,7 @@ $gridImageColumns = $columnCss['gridImageColumns'] ?? 2;
 
 <div class="<?= $block->escapeHtmlAttr(implode(' ', $wrapperClasses)) ?>"
      style="isolation: isolate;" data-role="rp-gallery"
-     data-mage-init='{"rpGalleryZoom": <?= /* @noEscape */ $jsConfig ?>, "rpGalleryCarousel": <?= /* @noEscape */ $jsConfig ?>, "rpGalleryTabs": <?= /* @noEscape */ $jsConfig ?>, "rpGalleryEffects": <?= /* @noEscape */ $jsConfig ?>, "rpGalleryThumbnails": <?= /* @noEscape */ $jsConfig ?>, "rpGallerySlider": <?= /* @noEscape */ $jsConfig ?>, "rpGalleryModalZoom": <?= /* @noEscape */ $jsConfig ?>, "rpGalleryCarouselZoom": <?= /* @noEscape */ $jsConfig ?>, "rpGalleryVideo": <?= /* @noEscape */ $jsConfig ?>}'>
+     data-mage-init='{<?php if ($stickyGallery): ?>"rpStickyScroll": <?= /* @noEscape */ $jsConfig ?>, <?php endif; ?>"rpGalleryZoom": <?= /* @noEscape */ $jsConfig ?>, "rpGalleryCarousel": <?= /* @noEscape */ $jsConfig ?>, "rpGalleryTabs": <?= /* @noEscape */ $jsConfig ?>, "rpGalleryEffects": <?= /* @noEscape */ $jsConfig ?>, "rpGalleryThumbnails": <?= /* @noEscape */ $jsConfig ?>, "rpGallerySlider": <?= /* @noEscape */ $jsConfig ?>, "rpGalleryModalZoom": <?= /* @noEscape */ $jsConfig ?>, "rpGalleryCarouselZoom": <?= /* @noEscape */ $jsConfig ?>, "rpGalleryVideo": <?= /* @noEscape */ $jsConfig ?>}'>
 
     <?php if ($layoutType === 'slider'): ?>
     <div class="rp-slider-wrapper">

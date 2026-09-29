@@ -687,8 +687,23 @@
                        showInWebsite="1"
                        showInStore="1">
                     <label>Enable Sticky</label>
-                    <comment>Keep product info panel fixed while scrolling through images</comment>
+                    <comment>Keep one column fixed while the other one scrolls</comment>
                     <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                </field>
+
+                <field id="target"
+                       translate="label comment"
+                       type="select"
+                       sortOrder="12"
+                       showInDefault="1"
+                       showInWebsite="1"
+                       showInStore="1">
+                    <label>Sticky Element</label>
+                    <comment>Info panel: stays fixed while scrolling through images (galleries longer than the info). Image gallery: stays fixed while scrolling through the description (info longer than the gallery). Desktop only; it releases at the end of the product block. A gallery taller than the screen sticks by its bottom edge.</comment>
+                    <source_model>Rollpix\ProductGallery\Model\Config\Source\StickyTarget</source_model>
+                    <depends>
+                        <field id="enabled">1</field>
+                    </depends>
                 </field>
 
                 <field id="mode"
@@ -703,6 +718,7 @@
                     <source_model>Rollpix\ProductGallery\Model\Config\Source\StickyMode</source_model>
                     <depends>
                         <field id="enabled">1</field>
+                        <field id="target">info</field>
                     </depends>
                 </field>
 

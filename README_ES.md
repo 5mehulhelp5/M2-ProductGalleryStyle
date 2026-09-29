@@ -57,6 +57,7 @@ Modulo moderno de galeria de producto estilo editorial para Magento 2 que reempl
 - **Dos modos Sticky**:
   - **Modo Frame**: El panel de info scrollea dentro de un contenedor de altura fija
   - **Modo Scroll Natural**: El panel de info queda fijo arriba mientras las imagenes scrollean
+- **Elemento fijo**: fija el panel de info (galerías largas) o la galería de imágenes (descripciones largas). La columna fija se suelta al final del bloque del producto; si la galería es más alta que la pantalla, se pega por abajo para que las miniaturas sigan a la vista
 - **Offset configurable**: Ajustar distancia superior para sitios con headers fijos
 - **Activar/Desactivar**: Habilitar o deshabilitar el comportamiento sticky
 
@@ -181,7 +182,8 @@ Navegar a **Tiendas > Configuracion > Rollpix > Product Gallery**
 | Opcion | Descripcion | Default |
 |--------|-------------|---------|
 | Habilitar Sticky | Mantener info del producto fija al scrollear | Si |
-| Modo Sticky | Frame (panel scrolleable) o Scroll Natural (fijo arriba) | Scroll Natural |
+| Elemento fijo | Panel de info del producto o Galería de imágenes (sólo desktop) | Panel de info del producto |
+| Modo Sticky | Frame (panel scrolleable) o Scroll Natural (fijo arriba). Sólo para el panel de info | Scroll Natural |
 | Offset Superior | Distancia desde arriba en pixeles | 20px |
 
 ### Configuracion de Video (Pagina de Producto)
